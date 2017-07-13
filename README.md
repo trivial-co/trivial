@@ -9,4 +9,5 @@
 ## Serve
 
 - Test network backend: `testrpc`
-- Run files: `truffle migrate`
+- Run local: `truffle migrate`
+- Run on Ropsten: `truffle migrate --network ropsten`
