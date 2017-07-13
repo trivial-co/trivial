@@ -1,0 +1,28 @@
+{
+  "name": "trivial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/10clouds/trivial.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/10clouds/trivial/issues"
+  },
+  "homepage": "https://github.com/10clouds/trivial#readme",
+  "dependencies": {
+    "bip39": "^2.3.1",
+    "ethereumjs-wallet": "^0.6.0",
+    "web3": "^0.19.1",
+    "web3-provider-engine": "^13.2.8"
+  }
+}
