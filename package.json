@@ -20,9 +20,6 @@
   },
   "homepage": "https://github.com/10clouds/trivial#readme",
   "dependencies": {
-    "bip39": "^2.3.1",
-    "ethereumjs-wallet": "^0.6.0",
-    "web3": "^0.19.1",
-    "web3-provider-engine": "^13.2.8"
+    "truffle-hdwallet-provider": "0.0.3"
   }
 }
