@@ -1,6 +1,6 @@
 var HDWalletProvider = require('truffle-hdwallet-provider');
 
-var mnemonic = "trivial solve trivial spirit trivial fine trivial rhythm trivial feature trivial away";
+var mnemonic = "speed enforce stone place abuse drastic fiscal amused path arch slot adjust";
 
 module.exports = {
   networks: {
@@ -12,7 +12,8 @@ module.exports = {
     ropsten: {
       network_id: 3,    // Official ropsten network id
       provider: new HDWalletProvider(mnemonic, 'https://ropsten.infura.io/IMsVbCijmt9z4RnBadCo'),
-      gas: 500000,
+      gas: 1000000,
+      gasPrice: 20,
     },
   }
 };
