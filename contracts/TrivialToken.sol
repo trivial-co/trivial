@@ -3,12 +3,16 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
+  address artist;
+  address trivial;
 
   uint256 public amountRaised;
-  uint256 public tokensForIco;
-  uint256 public tokensForArtist;
-  uint256 public tokensForTrivial;
   uint256 public icoEndTime;
+
+  uint256 public constant initialTokenAmount = 1000;
+  uint256 public constant tokensForArtist = 200;
+  uint256 public constant tokensForTrivial = 100;
+  uint256 public constant tokensForIco = 700;
 
   event FirstAuctionStarted();
   event FirstAuctionContributed(address contributor, uint256 amountContributed);
@@ -17,7 +21,8 @@ contract TrivialToken is ERC223Token {
   enum State { Created, FirstAuctionStarted, FirstAuctionFinished }
   State currentState;
 
-  mapping(address => uint) public contributors;
+  mapping(address => uint) public contributions;
+  address[] public contributors;
 
   modifier onlyInState(State expectedState) {
     require(expectedState == currentState); _;
@@ -27,7 +32,7 @@ contract TrivialToken is ERC223Token {
     require(now < _time); _;
   }
 
-  function TrivialToken(uint256 _icoEndTime) {
+  function TrivialToken(uint256 _icoEndTime, address _artist, address _trivial) {
     name = 'Trivial';
     symbol = 'TRVL';
     decimals = 3;
@@ -36,6 +41,8 @@ contract TrivialToken is ERC223Token {
     balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
 
     icoEndTime = _icoEndTime;
+    artist = _artist;
+    trivial = _trivial;
     currentState = State.Created;
   }
 
@@ -49,9 +56,32 @@ contract TrivialToken is ERC223Token {
   onlyBefore(icoEndTime) {
     require(msg.value > 0);
 
-    contributors[msg.sender] += msg.value;
+    if (contributions[msg.sender] == 0) {
+      contributors.push(msg.sender);
+    }
+    contributions[msg.sender] += msg.value;
     amountRaised += msg.value;
 
     FirstAuctionContributed(msg.sender, msg.value);
+  }
+
+  function finishFirstAuction() onlyInState(State.FirstAuctionStarted) {
+    currentState = State.FirstAuctionFinished;
+    FirstAuctionFinished(amountRaised);
+
+    balances[artist] += tokensForArtist;
+    balances[trivial] += tokensForTrivial;
+
+    for (uint i = 0; i < contributors.length; i++) {
+      address currentContributor = contributors[i];
+      // Add some checks to ensure division will go floor and not exceed limit
+      balances[currentContributor] += safeDiv(
+          tokensForIco * contributions[currentContributor],
+          amountRaised, true);
+    }
+  }
+
+  function () payable {
+    contributeInIco();
   }
 }
