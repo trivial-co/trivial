@@ -14,6 +14,9 @@ contract TrivialToken is ERC223Token {
   uint256 public constant tokensForTrivial = 100;
   uint256 public constant tokensForIco = 700;
 
+  uint8 _decimals = 3;
+  uint256 floatingPoint = 10 * _decimals;
+
   event FirstAuctionStarted();
   event FirstAuctionContributed(address contributor, uint256 amountContributed);
   event FirstAuctionFinished(uint256 amountRaised);
@@ -35,7 +38,7 @@ contract TrivialToken is ERC223Token {
   function TrivialToken(uint256 _icoEndTime, address _artist, address _trivial) {
     name = 'Trivial';
     symbol = 'TRVL';
-    decimals = 3;
+    decimals = _decimals;
     totalSupply = 1000;
     balances[0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5] = 111;
     balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
@@ -74,10 +77,13 @@ contract TrivialToken is ERC223Token {
 
     for (uint i = 0; i < contributors.length; i++) {
       address currentContributor = contributors[i];
-      // Add some checks to ensure division will go floor and not exceed limit
-      balances[currentContributor] += safeDiv(
-          tokensForIco * contributions[currentContributor],
-          amountRaised, true);
+      balances[currentContributor] += safeMul(
+          safeDiv(
+            safeMul(tokensForIco, contributions[currentContributor]),
+            amountRaised, true
+          ),
+          floatingPoint
+        );
     }
   }
 
