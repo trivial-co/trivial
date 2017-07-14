@@ -1,3 +1,5 @@
+pragma solidity ^0.4.11;
+
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
@@ -12,7 +14,7 @@ contract TrivialToken is ERC223Token {
   event FirstAuctionContributed(address contributor, uint256 amountContributed);
   event FirstAuctionFinished(uint256 amountRaised);
 
-  enum State {Created, FirstAuctionStarted, FirstAuctionFinished};
+  enum State { Created, FirstAuctionStarted, FirstAuctionFinished }
   State currentState;
 
   mapping(address => uint) public contributors;
@@ -33,7 +35,7 @@ contract TrivialToken is ERC223Token {
     balances[0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5] = 111;
     balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
 
-    icoGoal = _icoEndTime;
+    icoEndTime = _icoEndTime;
     currentState = State.Created;
   }
 
@@ -45,11 +47,11 @@ contract TrivialToken is ERC223Token {
   function contributeInIco() payable
   onlyInState(State.FirstAuctionStarted)
   onlyBefore(icoEndTime) {
-    require(msg.value);
+    require(msg.value > 0);
 
     contributors[msg.sender] += msg.value;
     amountRaised += msg.value;
 
-    FirstAuctionContributed(msg.sender, msg.value)
+    FirstAuctionContributed(msg.sender, msg.value);
   }
 }
