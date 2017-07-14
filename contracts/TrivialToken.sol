@@ -34,7 +34,7 @@ contract TrivialToken is ERC223Token {
 
   function startFirstAuction() onlyInState(State.Created) {
     currentState = State.FirstAuctionStarted;
-    FirstAuctionStarted(goal);
+    FirstAuctionStarted();
   }
 
   function contributeInIco() payable onlyInState(State.FirstAuctionStarted) {
