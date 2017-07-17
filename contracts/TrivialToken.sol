@@ -84,12 +84,20 @@ contract TrivialToken is ERC223Token {
         balances[artist] += tokensForArtist;
         balances[trivial] += tokensForTrivial;
 
+        uint256 tokensForContributors = 0;
         for (uint i = 0; i < contributors.length; i++) {
             address currentContributor = contributors[i];
-            balances[currentContributor] += safeDiv(
+            uint256 tokensForContributor = safeDiv(
                 safeMul(tokensForIco, contributions[currentContributor]),
                 amountRaised, true
             );
+            balances[currentContributor] += tokensForContributor;
+            tokensForContributors += tokensForContributor;
+        }
+
+        uint256 leftovers = safeSub(tokensForIco, tokensForContributors);
+        if (leftovers > 0) {
+          balances[artist] += leftovers;
         }
     }
 
