@@ -85,6 +85,10 @@ contract TrivialToken is ERC223Token {
         }
     }
 
+    function checkContribution(address contributor) constant returns (uint) {
+        return contributions[contributor];
+    }
+
     function () payable {
         revert();
     }
