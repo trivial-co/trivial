@@ -3,17 +3,15 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
-    uint256 public constant TOTAL_SUPPLY = 1000;
-    uint256 public constant TOKENS_FOR_ARTIST = 200;
-    uint256 public constant TOKENS_FOR_TRIVIAL = 100;
-    uint256 public constant TOKENS_FOR_ICO = 700;
-    uint8 public constant DECIMALS = 3;
-
     address artist;
     address trivial;
     uint256 public amountRaised;
     uint256 public icoEndTime;
-    uint256 floatingPoint = 10 ** uint256(DECIMALS);
+
+    uint256 public totalSupply;
+    uint256 public tokensForArtist;
+    uint256 public tokensForTrivial;
+    uint256 public tokensForIco;
 
     event IcoStarted();
     event IcoContributed(address contributor, uint256 amountContributed);
@@ -33,17 +31,30 @@ contract TrivialToken is ERC223Token {
         require(now < _time); _;
     }
 
-    function TrivialToken(uint256 _icoEndTime, address _artist, address _trivial) {
+    function TrivialToken(
+      uint256 _icoEndTime, address _artist, address _trivial,
+      uint256 _totalSupply, uint256 _tokensForArtist,
+      uint256 _tokensForIco, uint256 _tokensForTrivial
+      ) {
+        require(now > _icoEndTime);
+        require(_totalSupply == _tokensForArtist + _tokensForTrivial + _tokensForIco);
+
         name = 'Trivial';
         symbol = 'TRVL';
-        decimals = DECIMALS;
-        totalSupply = TOTAL_SUPPLY;
-        balances[0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5] = 111;
-        balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
+        decimals = 0;
 
         icoEndTime = _icoEndTime;
         artist = _artist;
         trivial = _trivial;
+
+        totalSupply = _totalSupply;
+        tokensForArtist = _tokensForArtist;
+        tokensForTrivial = _tokensForTrivial;
+        tokensForIco = _tokensForIco;
+
+        balances[0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5] = 111;
+        balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
+
         currentState = State.Created;
     }
 
@@ -70,17 +81,14 @@ contract TrivialToken is ERC223Token {
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
-        balances[artist] += TOKENS_FOR_ARTIST;
-        balances[trivial] += TOKENS_FOR_TRIVIAL;
+        balances[artist] += tokensForArtist;
+        balances[trivial] += tokensForTrivial;
 
         for (uint i = 0; i < contributors.length; i++) {
             address currentContributor = contributors[i];
-            balances[currentContributor] += safeMul(
-                safeDiv(
-                    safeMul(TOKENS_FOR_ICO, contributions[currentContributor]),
-                    amountRaised, true
-                ),
-                floatingPoint
+            balances[currentContributor] += safeDiv(
+                safeMul(tokensForIco, contributions[currentContributor]),
+                amountRaised, true
             );
         }
     }
