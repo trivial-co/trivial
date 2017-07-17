@@ -3,10 +3,13 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
+    uint256 constant MIN_BID_AMOUNT = 0.005 ether;
+
     address artist;
     address trivial;
     uint256 public amountRaised;
     uint256 public icoEndTime;
+    uint256 public auctionEndTime;
 
     uint256 public totalSupply;
     uint256 public tokensForArtist;
@@ -16,12 +19,18 @@ contract TrivialToken is ERC223Token {
     event IcoStarted();
     event IcoContributed(address contributor, uint256 amountContributed);
     event IcoFinished(uint256 amountRaised);
+    event AuctionStarted();
+    event HighestBidChanged(address bidder, uint256 bid);
+    event AuctionFinished();
 
-    enum State { Created, IcoStarted, IcoFinished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
     State currentState;
 
     mapping(address => uint) public contributions;
     address[] public contributors;
+
+    address public highestBidder;
+    uint256 public hightestBid;
 
     modifier onlyInState(State expectedState) {
         require(expectedState == currentState); _;
@@ -103,6 +112,28 @@ contract TrivialToken is ERC223Token {
 
     function checkContribution(address contributor) constant returns (uint) {
         return contributions[contributor];
+    }
+
+    function startAuction(uint256 _auctionEndTime) onlyInState(State.IcoFinished) {
+        auctionEndTime = _auctionEndTime;
+        currentState = State.AuctionStarted;
+        AuctionStarted();
+    }
+
+    function max(uint a, uint b) private returns (uint) {
+        return a > b ? a : b;
+    }
+
+    function bid() payable
+    onlyInState(State.AuctionStarted)
+    onlyBefore(auctionEndTime) {
+        require(msg.value > max(MIN_BID_AMOUNT, hightestBid));
+
+        highestBidder.transfer(hightestBid);
+        highestBidder = msg.sender;
+        hightestBid = msg.value;
+
+        HighestBidChanged(highestBidder, hightestBid);
     }
 
     function () payable {
