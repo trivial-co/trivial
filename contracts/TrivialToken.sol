@@ -4,14 +4,15 @@ import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
+    uint256 constant TOTAL_SUPPLY = 1000000;
 
     address artist;
     address trivial;
     uint256 public amountRaised;
     uint256 public icoEndTime;
+    uint256 public auctionDuration;
     uint256 public auctionEndTime;
 
-    uint256 public totalSupply;
     uint256 public tokensForArtist;
     uint256 public tokensForTrivial;
     uint256 public tokensForIco;
@@ -22,10 +23,9 @@ contract TrivialToken is ERC223Token {
     event AuctionStarted(uint256 auctionTime);
     event HighestBidChanged(address bidder, uint256 bid);
     event AuctionFinished(address bidder, uint256 bid);
-    event SharesWithdrawal(address contributor, uint256 tokens);
 
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
-    State currentState;
+    State public currentState;
 
     mapping(address => uint) public contributions;
     address[] public contributors;
@@ -46,22 +46,24 @@ contract TrivialToken is ERC223Token {
     }
 
     function TrivialToken(
-        uint256 _icoEndTime, address _artist, address _trivial,
-        uint256 _totalSupply, uint256 _tokensForArtist,
-        uint256 _tokensForIco, uint256 _tokensForTrivial
+        uint256 _icoEndTime, uint256 _auctionDuration,
+        address _artist, address _trivial,
+        uint256 _tokensForArtist,
+        uint256 _tokensForTrivial,
+        uint256 _tokensForIco
     ) {
         require(now > _icoEndTime);
-        require(_totalSupply == _tokensForArtist + _tokensForTrivial + _tokensForIco);
+        require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
 
         name = 'Trivial';
         symbol = 'TRVL';
         decimals = 0;
 
         icoEndTime = _icoEndTime;
+        auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
 
-        totalSupply = _totalSupply;
         tokensForArtist = _tokensForArtist;
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
@@ -119,21 +121,18 @@ contract TrivialToken is ERC223Token {
         return contributions[contributor];
     }
 
-    function startAuction(uint256 _auctionEndTime)
+    function startAuction()
     onlyInState(State.IcoFinished) {
-        auctionEndTime = _auctionEndTime;
-        currentState = State.AuctionStarted;
-        AuctionStarted(_auctionEndTime);
-    }
+        auctionEndTime = now + auctionDuration;
 
-    function max(uint a, uint b) private returns (uint) {
-        return a > b ? a : b;
+        currentState = State.AuctionStarted;
+        AuctionStarted(auctionEndTime);
     }
 
     function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
-        require(msg.value >= max(MIN_ETH_AMOUNT, highestBid + MIN_ETH_AMOUNT));
+        require(msg.value >= highestBid + MIN_ETH_AMOUNT);
 
         highestBidder.transfer(highestBid);
         highestBidder = msg.sender;
@@ -148,9 +147,7 @@ contract TrivialToken is ERC223Token {
         currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
 
-        //TODO: If withdrawal will not be implemented on frontend
-        // Than uncomment line below:
-        //widthdrawAllShares()
+        widthdrawAllShares();
     }
 
     function widthdrawAllShares() private
@@ -158,6 +155,7 @@ contract TrivialToken is ERC223Token {
         widthdrawShares(artist);
         widthdrawShares(trivial);
 
+        // TODO: Change contributors to actual holders
         for (uint i = 0; i < contributors.length; i++) {
             widthdrawShares(contributors[i]);
         }
@@ -172,10 +170,6 @@ contract TrivialToken is ERC223Token {
         contributor.transfer(
             safeDiv(safeMul(highestBid, availableTokens), totalSupply)
         );
-
-        //TODO: If withdrawal will not be implemented on frontend
-        // Than comment line below and make this a private function:
-        SharesWithdrawal(contributor, availableTokens);
     }
 
     function () payable {
