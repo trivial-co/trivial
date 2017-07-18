@@ -70,12 +70,10 @@ contract TrivialToken is ERC223Token {
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
-        balances[0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5] = 111;
-        balances[0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0] = 222;
-
         currentState = State.Created;
     }
 
+    // Override Token transfer method to track holders
     function transfer(address _to, uint _value, bytes _data) returns (bool success) {
         success = ERC223Token.transfer(_to, _value, _data);
         if (success) {
@@ -84,6 +82,7 @@ contract TrivialToken is ERC223Token {
         return success;
     }
 
+    // Same as above
     function transfer(address _to, uint _value) returns (bool success) {
         bytes memory empty;
         return transfer(_to, _value, empty);
@@ -109,6 +108,7 @@ contract TrivialToken is ERC223Token {
     }
 
     function finishIco() onlyInState(State.IcoStarted) {
+        tokenHolders = contributors;
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
@@ -130,8 +130,6 @@ contract TrivialToken is ERC223Token {
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
-
-        tokenHolders = contributors;
     }
 
     function checkContribution(address contributor) constant returns (uint) {
@@ -164,24 +162,24 @@ contract TrivialToken is ERC223Token {
         currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
 
-        widthdrawAllShares();
+        withdrawAllShares();
     }
 
-    function widthdrawAllShares() private
+    function withdrawAllShares() private
     onlyInState(State.AuctionFinished) {
-        widthdrawShares(artist);
-        widthdrawShares(trivial);
+        withdrawShares(artist);
+        withdrawShares(trivial);
 
         for (uint i = 0; i < tokenHolders.length; i++) {
             address holder = tokenHolders[i];
             if (balanceOf(holder) > 0) {
-                widthdrawShares(holder);
+                withdrawShares(holder);
             }
         }
         artist.transfer(this.balance);
     }
 
-    function widthdrawShares(address holder)
+    function withdrawShares(address holder)
     onlyInState(State.AuctionFinished) {
         uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
