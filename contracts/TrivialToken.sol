@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
-    uint256 constant MIN_BID_AMOUNT = 0.005 ether;
+    uint256 constant MIN_BID_AMOUNT = 0.01 ether;
 
     address artist;
     address trivial;
@@ -19,9 +19,9 @@ contract TrivialToken is ERC223Token {
     event IcoStarted();
     event IcoContributed(address contributor, uint256 amountContributed);
     event IcoFinished(uint256 amountRaised);
-    event AuctionStarted();
+    event AuctionStarted(uint256 auctionTime);
     event HighestBidChanged(address bidder, uint256 bid);
-    event AuctionFinished();
+    event AuctionFinished(address bidder, uint256 bid);
 
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
     State currentState;
@@ -40,11 +40,15 @@ contract TrivialToken is ERC223Token {
         require(now < _time); _;
     }
 
+    modifier onlyAfter(uint256 _time) {
+        require(now > _time); _;
+    }
+
     function TrivialToken(
-      uint256 _icoEndTime, address _artist, address _trivial,
-      uint256 _totalSupply, uint256 _tokensForArtist,
-      uint256 _tokensForIco, uint256 _tokensForTrivial
-      ) {
+        uint256 _icoEndTime, address _artist, address _trivial,
+        uint256 _totalSupply, uint256 _tokensForArtist,
+        uint256 _tokensForIco, uint256 _tokensForTrivial
+    ) {
         require(now > _icoEndTime);
         require(_totalSupply == _tokensForArtist + _tokensForTrivial + _tokensForIco);
 
@@ -106,7 +110,7 @@ contract TrivialToken is ERC223Token {
 
         uint256 leftovers = safeSub(tokensForIco, tokensForContributors);
         if (leftovers > 0) {
-          balances[artist] += leftovers;
+            balances[artist] += leftovers;
         }
     }
 
@@ -114,10 +118,11 @@ contract TrivialToken is ERC223Token {
         return contributions[contributor];
     }
 
-    function startAuction(uint256 _auctionEndTime) onlyInState(State.IcoFinished) {
+    function startAuction(uint256 _auctionEndTime)
+    onlyInState(State.IcoFinished) {
         auctionEndTime = _auctionEndTime;
         currentState = State.AuctionStarted;
-        AuctionStarted();
+        AuctionStarted(_auctionEndTime);
     }
 
     function max(uint a, uint b) private returns (uint) {
@@ -134,6 +139,13 @@ contract TrivialToken is ERC223Token {
         hightestBid = msg.value;
 
         HighestBidChanged(highestBidder, hightestBid);
+    }
+
+    function finishAuction()
+    onlyInState(State.AuctionStarted)
+    onlyAfter(auctionEndTime) {
+        currentState = State.AuctionFinished;
+        AuctionFinished(highestBidder, hightestBid);
     }
 
     function () payable {
