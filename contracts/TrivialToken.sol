@@ -155,7 +155,7 @@ contract TrivialToken is ERC223Token {
         widthdrawShares(artist);
         widthdrawShares(trivial);
 
-        // TODO: Change contributors to actual holders
+        //TODO: Change contributors to actual holders
         for (uint i = 0; i < contributors.length; i++) {
             widthdrawShares(contributors[i]);
         }
@@ -168,7 +168,7 @@ contract TrivialToken is ERC223Token {
         balances[contributor] = 0;
 
         contributor.transfer(
-            safeDiv(safeMul(highestBid, availableTokens), totalSupply)
+            safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
         );
     }
 
