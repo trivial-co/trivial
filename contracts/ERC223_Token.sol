@@ -31,12 +31,9 @@ contract SafeMath {
         return x * y;
     }
 
-    function safeDiv(uint256 x, uint256 y, bool allowRemainder) constant internal returns (uint256 z) {
+    function safeDiv(uint256 x, uint256 y) constant internal returns (uint256 z) {
       require(y > 0);
       require(x > y);
-      if (!allowRemainder) {
-          require(x % y == 0);
-      }
       return x / y;
     }
 }

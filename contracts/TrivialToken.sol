@@ -22,6 +22,7 @@ contract TrivialToken is ERC223Token {
     event AuctionStarted(uint256 auctionTime);
     event HighestBidChanged(address bidder, uint256 bid);
     event AuctionFinished(address bidder, uint256 bid);
+    event SharesWithdrawal(address contributor, uint256 tokens);
 
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
     State currentState;
@@ -30,7 +31,7 @@ contract TrivialToken is ERC223Token {
     address[] public contributors;
 
     address public highestBidder;
-    uint256 public hightestBid;
+    uint256 public highestBid;
 
     modifier onlyInState(State expectedState) {
         require(expectedState == currentState); _;
@@ -102,7 +103,7 @@ contract TrivialToken is ERC223Token {
             address currentContributor = contributors[i];
             uint256 tokensForContributor = safeDiv(
                 safeMul(tokensForIco, contributions[currentContributor]),
-                amountRaised, true
+                amountRaised
             );
             balances[currentContributor] += tokensForContributor;
             tokensForContributors += tokensForContributor;
@@ -129,23 +130,50 @@ contract TrivialToken is ERC223Token {
         return a > b ? a : b;
     }
 
-    function bid() payable
+    function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
-        require(msg.value >= max(MIN_ETH_AMOUNT, hightestBid + MIN_ETH_AMOUNT));
+        require(msg.value >= max(MIN_ETH_AMOUNT, highestBid + MIN_ETH_AMOUNT));
 
-        highestBidder.transfer(hightestBid);
+        highestBidder.transfer(highestBid);
         highestBidder = msg.sender;
-        hightestBid = msg.value;
+        highestBid = msg.value;
 
-        HighestBidChanged(highestBidder, hightestBid);
+        HighestBidChanged(highestBidder, highestBid);
     }
 
     function finishAuction()
     onlyInState(State.AuctionStarted)
     onlyAfter(auctionEndTime) {
         currentState = State.AuctionFinished;
-        AuctionFinished(highestBidder, hightestBid);
+        AuctionFinished(highestBidder, highestBid);
+
+        //TODO: If withdrawal will not be implemented on frontend
+        // Than uncomment line below:
+        //widthdrawAllShares()
+    }
+
+    function widthdrawAllShares() private
+    onlyInState(State.AuctionFinished) {
+        widthdrawShares(artist);
+        widthdrawShares(trivial);
+
+        for (uint i = 0; i < contributors.length; i++) {
+            widthdrawShares(contributors[i]);
+        }
+    }
+
+    function widthdrawShares(address contributor)
+    onlyInState(State.AuctionFinished) {
+        uint256 availableTokens = balances[contributor];
+        require(availableTokens > 0);
+        balances[contributor] = 0;
+
+        contributor.transfer(
+            safeDiv(safeMul(highestBid, availableTokens), totalSupply)
+        );
+
+        SharesWithdrawal(contributor, availableTokens);
     }
 
     function () payable {
