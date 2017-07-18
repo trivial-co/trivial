@@ -30,6 +30,8 @@ contract TrivialToken is ERC223Token {
     mapping(address => uint) public contributions;
     address[] public contributors;
 
+    address[] tokenHolders;
+
     address public highestBidder;
     uint256 public highestBid;
 
@@ -74,6 +76,19 @@ contract TrivialToken is ERC223Token {
         currentState = State.Created;
     }
 
+    function transfer(address _to, uint _value, bytes _data) returns (bool success) {
+        success = ERC223Token.transfer(_to, _value, _data);
+        if (success) {
+            tokenHolders.push(_to);
+        }
+        return success;
+    }
+
+    function transfer(address _to, uint _value) returns (bool success) {
+        bytes memory empty;
+        return transfer(_to, _value, empty);
+    }
+
     function startIco() onlyInState(State.Created) {
         currentState = State.IcoStarted;
         IcoStarted();
@@ -115,6 +130,8 @@ contract TrivialToken is ERC223Token {
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
+
+        tokenHolders = contributors;
     }
 
     function checkContribution(address contributor) constant returns (uint) {
@@ -155,19 +172,22 @@ contract TrivialToken is ERC223Token {
         widthdrawShares(artist);
         widthdrawShares(trivial);
 
-        //TODO: Change contributors to actual holders
-        for (uint i = 0; i < contributors.length; i++) {
-            widthdrawShares(contributors[i]);
+        for (uint i = 0; i < tokenHolders.length; i++) {
+            address holder = tokenHolders[i];
+            if (balanceOf(holder) > 0) {
+                widthdrawShares(holder);
+            }
         }
+        artist.transfer(this.balance);
     }
 
-    function widthdrawShares(address contributor)
+    function widthdrawShares(address holder)
     onlyInState(State.AuctionFinished) {
-        uint256 availableTokens = balances[contributor];
+        uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
-        balances[contributor] = 0;
+        balances[holder] = 0;
 
-        contributor.transfer(
+        holder.transfer(
             safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
         );
     }
