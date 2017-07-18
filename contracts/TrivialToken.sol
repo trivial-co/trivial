@@ -173,6 +173,8 @@ contract TrivialToken is ERC223Token {
             safeDiv(safeMul(highestBid, availableTokens), totalSupply)
         );
 
+        //TODO: If withdrawal will not be implemented on frontend
+        // Than comment line below and make this a private function:
         SharesWithdrawal(contributor, availableTokens);
     }
 
