@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
-    uint256 constant MIN_BID_AMOUNT = 0.01 ether;
+    uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
 
     address artist;
     address trivial;
@@ -79,7 +79,7 @@ contract TrivialToken is ERC223Token {
     function contributeInIco() payable
     onlyInState(State.IcoStarted)
     onlyBefore(icoEndTime) {
-        require(msg.value > 0);
+        require(msg.value > MIN_ETH_AMOUNT);
 
         if (contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
@@ -132,7 +132,7 @@ contract TrivialToken is ERC223Token {
     function bid() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
-        require(msg.value > max(MIN_BID_AMOUNT, hightestBid));
+        require(msg.value >= max(MIN_ETH_AMOUNT, hightestBid + MIN_ETH_AMOUNT));
 
         highestBidder.transfer(hightestBid);
         highestBidder = msg.sender;
