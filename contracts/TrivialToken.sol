@@ -106,7 +106,8 @@ contract TrivialToken is ERC223Token {
     }
 
     function finishIco() onlyInState(State.IcoStarted) {
-        //tokenHolders = contributors;
+        tokenHolders = contributors;
+
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
