@@ -54,7 +54,7 @@ contract TrivialToken is ERC223Token {
         uint256 _tokensForTrivial,
         uint256 _tokensForIco
     ) {
-        require(now > _icoEndTime);
+        require(now < _icoEndTime);
         require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
 
         name = 'Trivial';
@@ -73,7 +73,6 @@ contract TrivialToken is ERC223Token {
         currentState = State.Created;
     }
 
-    // Override Token transfer method to track holders
     function transfer(address _to, uint _value, bytes _data) returns (bool success) {
         success = ERC223Token.transfer(_to, _value, _data);
         if (success) {
@@ -82,7 +81,6 @@ contract TrivialToken is ERC223Token {
         return success;
     }
 
-    // Same as above
     function transfer(address _to, uint _value) returns (bool success) {
         bytes memory empty;
         return transfer(_to, _value, empty);
@@ -108,7 +106,7 @@ contract TrivialToken is ERC223Token {
     }
 
     function finishIco() onlyInState(State.IcoStarted) {
-        tokenHolders = contributors;
+        //tokenHolders = contributors;
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
@@ -179,7 +177,7 @@ contract TrivialToken is ERC223Token {
         artist.transfer(this.balance);
     }
 
-    function withdrawShares(address holder)
+    function withdrawShares(address holder) private
     onlyInState(State.AuctionFinished) {
         uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
