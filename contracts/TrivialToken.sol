@@ -32,7 +32,7 @@ contract TrivialToken is ERC223Token {
 
     //Events
     event IcoStarted();
-    event IcoContributed(address contributor, uint256 amountContributed);
+    event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
     event AuctionStarted(uint256 auctionTime);
     event HighestBidChanged(address bidder, uint256 bid);
@@ -103,7 +103,7 @@ contract TrivialToken is ERC223Token {
         contributions[msg.sender] += msg.value;
         amountRaised += msg.value;
 
-        IcoContributed(msg.sender, msg.value);
+        IcoContributed(msg.sender, msg.value, amountRaised);
     }
 
     function finishIco()
