@@ -9,7 +9,7 @@ contract TrivialToken is ERC223Token {
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
     uint256 constant TOTAL_SUPPLY = 1000000;
-    uint256 constant KEY_HOLDER_PERCENTAGE = 20; // 100% divided by gives 5%
+    uint256 constant KEY_HOLDER_PART = 20; // tokensForIco / KEY_HOLDER_PART
 
     //Private accounts
     address artist;
@@ -53,7 +53,7 @@ contract TrivialToken is ERC223Token {
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
     modifier onlyKeyHolders() {
-        require(balances[msg.sender] >= safeDiv(tokensForIco, KEY_HOLDER_PERCENTAGE)); _;
+        require(balances[msg.sender] >= safeDiv(tokensForIco, KEY_HOLDER_PART)); _;
     }
 
     function TrivialToken(
@@ -81,6 +81,22 @@ contract TrivialToken is ERC223Token {
 
         currentState = State.Created;
     }
+
+    /*
+        Development
+    */
+    function setStateCreated() { currentState = State.Created; }
+    function setStateIcoStarted() { currentState = State.IcoStarted; }
+    function setStateIcoFinished() { currentState = State.IcoFinished; }
+    function setStateAuctionStarted() { currentState = State.AuctionStarted; }
+    function setStateAuctionFinished() { currentState = State.AuctionFinished; }
+    function setTrivial() { trivial = msg.sender; }
+    function setArtist() { artist = msg.sender; }
+    function setIcoEndTime(uint256 time) { icoEndTime = time; }
+    function setIcoEndTimeTenMinutes() { icoEndTime = now + 10 minutes; }
+    function setAuctionEndTime(uint256 time) { auctionEndTime = time; }
+    function setAuctionEndTimeTenMinutes() { auctionEndTime = now + 10 minutes; }
+    function becomeKeyHolder() { balances[msg.sender] = safeDiv(tokensForIco, KEY_HOLDER_PART); }
 
     /*
         ICO methods
