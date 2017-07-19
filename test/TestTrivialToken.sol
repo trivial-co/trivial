@@ -14,7 +14,8 @@ contract TestTrivialToken {
             icoEndTime, auctionDuration, artist, trivial,
             200000, 200000, 600000
         );
-        uint256 i = 1;
-        Assert.equal(i, 1, "empty");
+        uint256 i = 0;
+        Assert.equal(i, 0, "zero");
+        Assert.notEqual(i, 1, "one");
     }
 }
