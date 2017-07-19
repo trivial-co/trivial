@@ -199,6 +199,19 @@ contract TrivialToken is ERC223Token {
     /*
         General methods
     */
+
+    // helper function to avoid too many contract calls on frontend side
+    function getContractState() constant returns (
+        uint256, uint256, uint256, uint256, uint256,
+        uint256, uint256, address, uint256, State
+    ) {
+        return (
+            icoEndTime, auctionDuration, auctionEndTime,
+            tokensForArtist, tokensForTrivial, tokensForIco,
+            amountRaised, highestBidder, highestBid, currentState
+        );
+    }
+
     function transfer(address _to, uint _value, bytes _data) returns (bool success) {
         success = ERC223Token.transfer(_to, _value, _data);
         if (success) {
