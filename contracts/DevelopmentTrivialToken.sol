@@ -20,5 +20,6 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setIcoEndTimeTenMinutes() { icoEndTime = now + 10 minutes; }
     function setAuctionEndTime(uint256 time) { auctionEndTime = time; }
     function setAuctionEndTimeTenMinutes() { auctionEndTime = now + 10 minutes; }
-    function becomeKeyHolder() { balances[msg.sender] = safeDiv(tokensForIco, KEY_HOLDER_PART); }
+    function becomeKeyHolder() {
+        balances[msg.sender] = safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 }
