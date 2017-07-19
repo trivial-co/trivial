@@ -9,7 +9,7 @@ contract TrivialToken is ERC223Token {
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
     uint256 constant TOTAL_SUPPLY = 1000000;
-    uint256 constant KEY_HOLDER_PART = 20; // tokensForIco / KEY_HOLDER_PART
+    uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
 
     //Private accounts
     address artist;
@@ -52,8 +52,8 @@ contract TrivialToken is ERC223Token {
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
-    modifier onlyKeyHolders() {
-        require(balances[msg.sender] >= safeDiv(tokensForIco, KEY_HOLDER_PART)); _;
+    modifier onlyKeyHolders() { require(balances[msg.sender] >= safeDiv(
+        safeMul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
     }
 
     function TrivialToken(
