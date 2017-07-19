@@ -3,20 +3,33 @@ pragma solidity ^0.4.11;
 import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
+    //Constants
+    string constant NAME = 'Trivial';
+    string constant SYMBOL = 'TRVL';
+    uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
     uint256 constant TOTAL_SUPPLY = 1000000;
 
+    //Private accounts
     address artist;
     address trivial;
-    uint256 public amountRaised;
+
+    //Time information
     uint256 public icoEndTime;
     uint256 public auctionDuration;
     uint256 public auctionEndTime;
 
+    //Token information
     uint256 public tokensForArtist;
     uint256 public tokensForTrivial;
     uint256 public tokensForIco;
 
+    //ICO and auction results
+    uint256 public amountRaised;
+    address public highestBidder;
+    uint256 public highestBid;
+
+    //Events
     event IcoStarted();
     event IcoContributed(address contributor, uint256 amountContributed);
     event IcoFinished(uint256 amountRaised);
@@ -24,28 +37,19 @@ contract TrivialToken is ERC223Token {
     event HighestBidChanged(address bidder, uint256 bid);
     event AuctionFinished(address bidder, uint256 bid);
 
+    //State
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
     State public currentState;
 
+    //Token contributors and holders
     mapping(address => uint) public contributions;
     address[] public contributors;
+    address[] public tokenHolders;
 
-    address[] tokenHolders;
-
-    address public highestBidder;
-    uint256 public highestBid;
-
-    modifier onlyInState(State expectedState) {
-        require(expectedState == currentState); _;
-    }
-
-    modifier onlyBefore(uint256 _time) {
-        require(now < _time); _;
-    }
-
-    modifier onlyAfter(uint256 _time) {
-        require(now > _time); _;
-    }
+    //Modififers
+    modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
+    modifier onlyBefore(uint256 _time) { require(now < _time); _; }
+    modifier onlyAfter(uint256 _time) { require(now > _time); _; }
 
     function TrivialToken(
         uint256 _icoEndTime, uint256 _auctionDuration,
@@ -57,9 +61,9 @@ contract TrivialToken is ERC223Token {
         require(now < _icoEndTime);
         require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
 
-        name = 'Trivial';
-        symbol = 'TRVL';
-        decimals = 0;
+        name = NAME;
+        symbol = SYMBOL;
+        decimals = DECIMALS;
 
         icoEndTime = _icoEndTime;
         auctionDuration = _auctionDuration;
@@ -73,19 +77,9 @@ contract TrivialToken is ERC223Token {
         currentState = State.Created;
     }
 
-    function transfer(address _to, uint _value, bytes _data) returns (bool success) {
-        success = ERC223Token.transfer(_to, _value, _data);
-        if (success) {
-            tokenHolders.push(_to);
-        }
-        return success;
-    }
-
-    function transfer(address _to, uint _value) returns (bool success) {
-        bytes memory empty;
-        return transfer(_to, _value, empty);
-    }
-
+    /*
+        ICO methods
+    */
     function startIco() onlyInState(State.Created) {
         currentState = State.IcoStarted;
         IcoStarted();
@@ -135,6 +129,9 @@ contract TrivialToken is ERC223Token {
         return contributions[contributor];
     }
 
+    /*
+        Auction methods
+    */
     function startAuction()
     onlyInState(State.IcoFinished) {
         auctionEndTime = now + auctionDuration;
@@ -187,6 +184,22 @@ contract TrivialToken is ERC223Token {
         holder.transfer(
             safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
         );
+    }
+
+    /*
+        General methods
+    */
+    function transfer(address _to, uint _value, bytes _data) returns (bool success) {
+        success = ERC223Token.transfer(_to, _value, _data);
+        if (success) {
+            tokenHolders.push(_to);
+        }
+        return success;
+    }
+
+    function transfer(address _to, uint _value) returns (bool success) {
+        bytes memory empty;
+        return transfer(_to, _value, empty);
     }
 
     function () payable {
