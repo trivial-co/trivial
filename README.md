@@ -5,7 +5,7 @@
 - Install Truffle: `npm install -g truffle`
 - Install Dependencies: `npm install`
 
-## Serve
+## Deploy
 
 For local development:
 
@@ -15,3 +15,9 @@ For local development:
 For public test network:
 
 - Run on Ropsten: `truffle migrate --network ropsten`
+
+## Test
+
+For local testing:
+
+- Run: `truffle test --network development`
