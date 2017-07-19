@@ -6,6 +6,17 @@ contract DevelopmentTrivialToken is TrivialToken {
     string constant NAME = 'DevelopmentTrivial';
     string constant SYMBOL = 'DEVTRVL';
 
+    function DevelopmentTrivialToken(
+        uint256 _icoEndTime, uint256 _auctionDuration,
+        address _artist, address _trivial,
+        uint256 _tokensForArtist,
+        uint256 _tokensForTrivial,
+        uint256 _tokensForIco
+    ) TrivialToken(
+        _icoEndTime, _auctionDuration, _artist, _trivial,
+        _tokensForArtist, _tokensForTrivial, _tokensForIco
+    ) {}
+
     /*
         Development
     */
