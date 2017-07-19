@@ -9,6 +9,7 @@ contract TrivialToken is ERC223Token {
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
     uint256 constant TOTAL_SUPPLY = 1000000;
+    uint256 constant KEY_HOLDER_PERCENTAGE = 20; // 100% divided by gives 5%
 
     //Private accounts
     address artist;
@@ -50,6 +51,10 @@ contract TrivialToken is ERC223Token {
     modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
+    modifier onlyTrivial() { require(msg.sender == trivial); _; }
+    modifier onlyKeyHolders() {
+        require(balances[msg.sender] >= safeDiv(tokensForIco, KEY_HOLDER_PERCENTAGE)); _;
+    }
 
     function TrivialToken(
         uint256 _icoEndTime, uint256 _auctionDuration,
@@ -80,7 +85,9 @@ contract TrivialToken is ERC223Token {
     /*
         ICO methods
     */
-    function startIco() onlyInState(State.Created) {
+    function startIco()
+    onlyInState(State.Created)
+    onlyTrivial() {
         currentState = State.IcoStarted;
         IcoStarted();
     }
@@ -99,7 +106,9 @@ contract TrivialToken is ERC223Token {
         IcoContributed(msg.sender, msg.value);
     }
 
-    function finishIco() onlyInState(State.IcoStarted) {
+    function finishIco()
+    onlyInState(State.IcoStarted)
+    onlyTrivial() {
         tokenHolders = contributors;
 
         currentState = State.IcoFinished;
@@ -133,7 +142,8 @@ contract TrivialToken is ERC223Token {
         Auction methods
     */
     function startAuction()
-    onlyInState(State.IcoFinished) {
+    onlyInState(State.IcoFinished)
+    onlyKeyHolders() {
         auctionEndTime = now + auctionDuration;
 
         currentState = State.AuctionStarted;
@@ -154,7 +164,8 @@ contract TrivialToken is ERC223Token {
 
     function finishAuction()
     onlyInState(State.AuctionStarted)
-    onlyAfter(auctionEndTime) {
+    onlyAfter(auctionEndTime)
+    onlyTrivial() {
         currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
 
