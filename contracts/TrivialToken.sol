@@ -31,7 +31,7 @@ contract TrivialToken is ERC223Token {
     uint256 public highestBid;
 
     //Events
-    event IcoStarted();
+    event IcoStarted(uint256 endTime);
     event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
     event AuctionStarted(uint256 auctionTime);
@@ -89,7 +89,7 @@ contract TrivialToken is ERC223Token {
     onlyInState(State.Created)
     onlyTrivial() {
         currentState = State.IcoStarted;
-        IcoStarted();
+        IcoStarted(icoEndTime);
     }
 
     function contributeInIco() payable
