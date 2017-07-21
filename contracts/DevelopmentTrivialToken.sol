@@ -31,6 +31,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function becomeArtist() { artist = msg.sender; }
     function setIcoEndTime(uint256 time) { icoEndTime = time; }
     function setIcoEndTimeTenMinutes() { icoEndTime = now + 10 minutes; }
+    function setIcoEndTimePast() { icoEndTime = now - 10 minutes; }
     function setAuctionEndTime(uint256 time) { auctionEndTime = time; }
     function setAuctionEndTimeTenMinutes() { auctionEndTime = now + 10 minutes; }
     function becomeKeyHolder() {
@@ -40,4 +41,5 @@ contract DevelopmentTrivialToken is TrivialToken {
     function getSelf() returns (address) { return msg.sender; }
     function isKeyHolder(address person) returns (bool) {
         return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+    function contributorsCount() returns (uint256) { return contributors.length; }
 }

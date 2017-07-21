@@ -18,23 +18,52 @@ contract('TrivialToken - ICO tests', (accounts) => {
         me = await token.getSelf.call();
     })
 
-    async function start_auction() {
-        assert.notEqual(await token.getTrivial.call(), me, 'I should not be Trivial');
-        await token.becomeTrivial();
-        assert.equal(await token.getSelf.call(), me, 'I should be old self');
-        assert.equal(await token.getTrivial.call(), me, 'I should be Trivial');
-        await token.startIco();
-        assert.equal(await token.currentState.call(), 1, 'Current state is not IcoStarted');
+    async function throws(fn, ...args) {
+        thrown = false;
+        try { await fn(...args); }
+        catch (err) { thrown = true; }
+        return thrown;
     }
 
-    it('check ICO start', async () => await start_auction())
+    async function startIco() {
+        assert.equal(await token.currentState.call(), 0, 'Should be Created');
+        assert.notEqual(await token.getTrivial.call(), me, 'Should not be Trivial');
+        await token.becomeTrivial();
+        assert.equal(await token.getSelf.call(), me, 'Should be old self');
+        assert.equal(await token.getTrivial.call(), me, 'Should be Trivial');
+        await token.startIco();
+        assert.equal(await token.currentState.call(), 1, 'Should be IcoStarted');
+    }
 
-    it('check ICO contribution', async () => {
-        assert.equal(await token.currentState.call(), 0, 'State should be Created');
-        await start_auction();
-        // assert.equal(await token.contributors(), 0, 'Should be empty');
+    async function contributeIco() {
+        assert.equal(await token.contributorsCount.call(), 0, 'Should be zero');
         await token.contributeInIco({from: accounts[0], value: 100000000000000000});
-        // assert.notEqual(await token.contributors().length, 0, 'Should not be empty');
+        await token.contributeInIco({from: accounts[1], value: 100000000000000000});
+        assert.equal(await token.contributorsCount.call(), 2, 'Should be two');
+    }
+
+    async function finishIco() {
+        assert.isOk(await throws(token.finishIco), 'finishIco - Should be thrown');
+        await token.setIcoEndTimePast();
+        await token.finishIco();
+        assert.equal(await token.currentState.call(), 2, 'Should be IcoFinished');
+        assert.isOk(await throws(
+            token.contributeInIco, {from: accounts[1], value: 100000000000000000}
+        ), 'contributeInIco - Should be thrown');
+    }
+
+    it('check ICO start', async () => {
+        await startIco();
     })
 
+    it('check ICO contribution', async () => {
+        await startIco();
+        await contributeIco();
+    })
+
+    it('check Finish ICO', async () => {
+        await startIco();
+        await contributeIco();
+        await finishIco();
+    })
 });

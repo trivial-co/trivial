@@ -21,7 +21,7 @@ contract SafeMath {
     }
 
     function safeSub(uint256 x, uint256 y) constant internal returns (uint256 z) {
-        require(x > y);
+        require(x >= y);
         return x - y;
     }
 
@@ -33,7 +33,7 @@ contract SafeMath {
 
     function safeDiv(uint256 x, uint256 y) constant internal returns (uint256 z) {
       require(y > 0);
-      require(x > y);
+      require(x >= y);
       return x / y;
     }
 }
