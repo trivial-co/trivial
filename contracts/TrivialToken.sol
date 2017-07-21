@@ -1,8 +1,10 @@
 pragma solidity ^0.4.11;
 
-import "./ERC223_Token.sol";
+import "./token/ERC223_Token.sol";
+import {SafeMath as ZeppelinSafeMath} from "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract TrivialToken is ERC223Token {
+
     //Constants
     string constant NAME = 'Trivial';
     string constant SYMBOL = 'TRVL';
@@ -120,15 +122,15 @@ contract TrivialToken is ERC223Token {
         uint256 tokensForContributors = 0;
         for (uint i = 0; i < contributors.length; i++) {
             address currentContributor = contributors[i];
-            uint256 tokensForContributor = safeDiv(
-                safeMul(tokensForIco, contributions[currentContributor]),
+            uint256 tokensForContributor = ZeppelinSafeMath.div(
+                ZeppelinSafeMath.mul(tokensForIco, contributions[currentContributor]),
                 amountRaised
             );
             balances[currentContributor] += tokensForContributor;
             tokensForContributors += tokensForContributor;
         }
 
-        uint256 leftovers = safeSub(tokensForIco, tokensForContributors);
+        uint256 leftovers = ZeppelinSafeMath.sub(tokensForIco, tokensForContributors);
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
