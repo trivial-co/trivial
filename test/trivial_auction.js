@@ -37,10 +37,21 @@ contract('TrivialToken - Auction tests', (accounts) => {
         return thrown;
     }
 
-    it('check Auction start', async () => {
+    async function startAuction() {
         await token.startAuction();
         assert.equal(await token.currentState.call(), 3, 'Should be three');
         assert.isAbove(await token.auctionEndTime.call(),
             Math.floor(Date.now() / 1000), 'Should be in future');
+    }
+
+    it('check Auction start', async () => {
+        await startAuction();
+    })
+
+    it('check Bid auction', async () => {
+        await startAuction();
+        assert.equal(await token.highestBid.call(), 0, 'Should be zero');
+        await token.bidInAuction({from: accounts[4], value: 300000000000000000});
+        assert.equal(await token.highestBid.call(), 300000000000000000, 'Should be 300000000000000000');
     })
 });

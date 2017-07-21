@@ -2,7 +2,6 @@
 
 ## Installation
 
-- Install Truffle: `npm install -g truffle`
 - Install Dependencies: `npm install`
 
 ## Deploy
@@ -10,14 +9,14 @@
 For local development:
 
 - Run local network: `docker-compose up`
-- Run local: `truffle migrate --network development`
+- Run local: `npm run migrate`
 
 For public test network:
 
-- Run on Ropsten: `truffle migrate --network ropsten`
+- Run on Ropsten: `npm run migrate-public`
 
 ## Test
 
 For local testing:
 
-- Run: `truffle test --network development`
+- Run: `npm test`
