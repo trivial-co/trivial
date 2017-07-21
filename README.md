@@ -19,4 +19,5 @@ For public test network:
 
 For local testing:
 
+- Run local network: `docker-compose up`
 - Run: `npm test`
