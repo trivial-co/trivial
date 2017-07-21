@@ -39,17 +39,25 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     async function startAuction() {
         await token.startAuction();
-        assert.equal(await token.currentState.call(), 3, 'Should be three');
+        assert.equal(await token.currentState.call(), 3, 'Should be AuctionStarted');
         assert.isAbove(await token.auctionEndTime.call(),
             Math.floor(Date.now() / 1000), 'Should be in future');
     }
 
-    async function bidAuction() {
+    async function bidAuction(runBalanceTests) {
+        var balance = parseInt(await token.getBalance(accounts[4]));
+        //Optional balance test, will work only for fresh testrpc
+        var checkBalance = balance == 100000000000000000000;
+        if (!checkBalance && runBalanceTests) {
+            console.log('Warning! Restart TestRPC to run balance tests!')
+        }
         assert.equal(await token.highestBid.call(), 0, 'Should be zero');
-        assert.equal(parseInt(await token.getBalance(accounts[4])), 99993650000000000000, 'Before balance')
         await token.bidInAuction({from: accounts[4], value: 300000000000000000});
-        assert.equal(parseInt(await token.getBalance(accounts[4])), 99687300000000000000, 'After balance');
-        assert.equal(await token.highestBid.call(), 300000000000000000, 'Should be 300000000000000000');
+        if (checkBalance) {
+            assert.equal(parseInt(
+                await token.getBalance(accounts[4])), 99693650000000000000, 'After balance'); }
+        assert.equal(
+            await token.highestBid.call(), 300000000000000000, 'Should be 300000000000000000');
         assert.isOk(await throws(
             token.bidInAuction, {from: accounts[5], value: 300000000000000000}
         ), 'bidInAuction - Should be thrown - equal');
@@ -57,8 +65,24 @@ contract('TrivialToken - Auction tests', (accounts) => {
             token.bidInAuction, {from: accounts[5], value: 300000000000000100}
         ), 'bidInAuction - Should be thrown - small');
         await token.bidInAuction({from: accounts[5], value: 350000000000000000});
-        assert.equal(await token.highestBid.call(), 350000000000000000, 'Should be 350000000000000000');
-        assert.equal(parseInt(await token.getBalance(accounts[4])), 99987300000000000000, 'Refund balance');
+        assert.equal(
+            await token.highestBid.call(), 350000000000000000, 'Should be 350000000000000000');
+        if (checkBalance) { assert.equal(parseInt(
+            await token.getBalance(accounts[4])), 99993650000000000000, 'Refund balance'); }
+    }
+
+    async function finishAuction() {
+        assert.isAbove(await token.auctionEndTime.call(),
+            Math.floor(Date.now() / 1000), 'Should be in future');
+        assert.isOk(await throws(token.finishAuction), 'finishAuction - Should be thrown');
+        await token.setAuctionEndTimePast();
+        assert.isBelow(await token.auctionEndTime.call(),
+            Math.floor(Date.now() / 1000), 'Should be in past');
+        await token.finishAuction();
+        assert.equal(await token.currentState.call(), 4, 'Should be AuctionFinished');
+        assert.isOk(await throws(
+            token.bidInAuction, {from: accounts[6], value: 900000000000000000}
+        ), 'bidInAuction - Should be thrown');
     }
 
     it('check Auction start', async () => {
@@ -67,6 +91,12 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     it('check Bid auction', async () => {
         await startAuction();
-        await bidAuction();
+        await bidAuction(true);
+    })
+
+    it('check Finish auction', async () => {
+        await startAuction();
+        await bidAuction(false);
+        await finishAuction();
     })
 });

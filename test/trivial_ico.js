@@ -40,7 +40,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await token.contributeInIco({from: accounts[0], value: 100000000000000000});
         await token.contributeInIco({from: accounts[1], value: 100000000000000000});
         await token.contributeInIco({from: accounts[2], value: 200000000000000000});
-        await token.contributeInIco({from: accounts[3], value: 200000000000000000});
+        await token.contributeInIco({from: accounts[3], value: 300000000000000000});
         assert.equal(await token.contributorsCount.call(), 4, 'Should be two');
     }
 
