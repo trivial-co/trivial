@@ -154,9 +154,12 @@ contract TrivialToken is ERC223Token {
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
         //TODO: Test inclusion of contributed amount
+        require(msg.value >= MIN_ETH_AMOUNT);
         require(msg.value >= highestBid - contributions[msg.sender] + MIN_ETH_AMOUNT);
 
-        highestBidder.transfer(highestBid - contributions[highestBidder]);
+        if (highestBid >= MIN_ETH_AMOUNT) {
+            highestBidder.transfer(highestBid - contributions[highestBidder]);
+        }
         highestBidder = msg.sender;
         highestBid = msg.value + contributions[msg.sender];
 
