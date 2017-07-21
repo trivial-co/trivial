@@ -53,5 +53,14 @@ contract('TrivialToken - Auction tests', (accounts) => {
         assert.equal(await token.highestBid.call(), 0, 'Should be zero');
         await token.bidInAuction({from: accounts[4], value: 300000000000000000});
         assert.equal(await token.highestBid.call(), 300000000000000000, 'Should be 300000000000000000');
+        assert.isOk(await throws(
+            token.bidInAuction, {from: accounts[5], value: 300000000000000000}
+        ), 'bidInAuction - Should be thrown - equal');
+        assert.isOk(await throws(
+            token.bidInAuction, {from: accounts[5], value: 300000000000000100}
+        ), 'bidInAuction - Should be thrown - small');
+        await token.bidInAuction({from: accounts[5], value: 350000000000000000});
+        assert.equal(await token.highestBid.call(), 350000000000000000, 'Should be 350000000000000000');
+        assert.equal(await token.getBalance(account[4]), 1, 'WTF');
     })
 });

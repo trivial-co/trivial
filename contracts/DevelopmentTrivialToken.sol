@@ -30,14 +30,16 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setArtist(address sender) { artist = sender; }
     function becomeArtist() { artist = msg.sender; }
     function setIcoEndTime(uint256 time) { icoEndTime = time; }
-    function setIcoEndTimeTenMinutes() { icoEndTime = now + 10 minutes; }
-    function setIcoEndTimePast() { icoEndTime = now - 10 minutes; }
+    function setIcoEndTimeOneMinute() { icoEndTime = now + 1 minutes; }
+    function setIcoEndTimePast() { icoEndTime = now - 1 minutes; }
     function setAuctionEndTime(uint256 time) { auctionEndTime = time; }
-    function setAuctionEndTimeTenMinutes() { auctionEndTime = now + 10 minutes; }
+    function setAuctionEndTimeOneMinute() { auctionEndTime = now + 1 minutes; }
+    function setAuctionEndTimePast() { auctionEndTime = now - 1 minutes; }
     function becomeKeyHolder() {
         balances[msg.sender] = safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
-    function getTrivial() returns (address) { return trivial; }
-    function getArtist() returns (address) { return artist; }
-    function getSelf() returns (address) { return msg.sender; }
-    function contributorsCount() returns (uint256) { return contributors.length; }
+    function getTrivial() constant returns (address) { return trivial; }
+    function getArtist() constant returns (address) { return artist; }
+    function getSelf() constant returns (address) { return msg.sender; }
+    function contributorsCount() constant returns (uint256) { return contributors.length; }
+    function getBalance(address account) constant returns (uint) { return account.balance; }
 }
