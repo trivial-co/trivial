@@ -153,15 +153,22 @@ contract TrivialToken is ERC223Token {
     function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
-        //TODO: Test inclusion of contributed amount
         require(msg.value >= MIN_ETH_AMOUNT);
-        require(msg.value >= highestBid - contributions[msg.sender] + MIN_ETH_AMOUNT);
+        uint256 overBidForUser = safeDiv(
+            safeMul(msg.value, balanceOf(msg.sender)), TOTAL_SUPPLY
+        );
+        require(msg.value + overBidForUser >= highestBid + MIN_ETH_AMOUNT);
 
         if (highestBid >= MIN_ETH_AMOUNT) {
-            highestBidder.transfer(highestBid - contributions[highestBidder]);
+            uint256 overBidForReturn = safeDiv(
+                safeMul(highestBid, TOTAL_SUPPLY),
+                safeAdd(TOTAL_SUPPLY, balanceOf(highestBidder))
+            );
+            highestBidder.transfer(highestBid - overBidForReturn);
         }
+
         highestBidder = msg.sender;
-        highestBid = msg.value + contributions[msg.sender];
+        highestBid = msg.value + overBidForUser;
 
         HighestBidChanged(highestBidder, highestBid);
     }
@@ -195,9 +202,11 @@ contract TrivialToken is ERC223Token {
         require(availableTokens > 0);
         balances[holder] = 0;
 
-        holder.transfer(
-            safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
-        );
+        if (holder != highestBidder) {
+            holder.transfer(
+                safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
+            );
+        }
     }
 
     function isKeyHolder(address person) constant returns (bool) {
