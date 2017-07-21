@@ -185,6 +185,9 @@ contract TrivialToken is ERC223Token {
         artist.transfer(this.balance);
     }
 
+    function isKeyHolder(address person) constant returns (bool) {
+        return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+
     function withdrawShares(address holder) private
     onlyInState(State.AuctionFinished) {
         uint256 availableTokens = balances[holder];
