@@ -154,21 +154,30 @@ contract TrivialToken is ERC223Token {
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
         require(msg.value >= MIN_ETH_AMOUNT);
-        uint256 overBidForUser = safeDiv(
-            safeMul(msg.value, balanceOf(msg.sender)), TOTAL_SUPPLY
-        );
-        require(msg.value + overBidForUser >= highestBid + MIN_ETH_AMOUNT);
+        uint256 overBidForUser = 0;
+        uint256 contribution = balanceOf(msg.sender);
+        if (contribution > 0) {
+            overBidForUser = safeDiv(
+               safeMul(msg.value, contribution),
+               TOTAL_SUPPLY
+            );
+        }
+        require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, MIN_ETH_AMOUNT));
 
         if (highestBid >= MIN_ETH_AMOUNT) {
-            uint256 overBidForReturn = safeDiv(
-                safeMul(highestBid, TOTAL_SUPPLY),
-                safeAdd(TOTAL_SUPPLY, balanceOf(highestBidder))
-            );
-            highestBidder.transfer(highestBid - overBidForReturn);
+            uint256 overBidForReturn;
+            uint256 contributed = balanceOf(highestBidder);
+            if (contributed > 0) {
+                overBidForReturn = safeDiv(
+                    safeMul(highestBid, TOTAL_SUPPLY),
+                    safeAdd(TOTAL_SUPPLY, contributed)
+                );
+            }
+            highestBidder.transfer(safeSub(highestBid, overBidForReturn));
         }
 
         highestBidder = msg.sender;
-        highestBid = msg.value + overBidForUser;
+        highestBid = safeAdd(msg.value, overBidForUser);
 
         HighestBidChanged(highestBidder, highestBid);
     }
