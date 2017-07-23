@@ -1,9 +1,10 @@
 pragma solidity ^0.4.11;
 
 import "./token/ERC223_Token.sol";
+import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 import {SafeMath as ZeppelinSafeMath} from "zeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract TrivialToken is ERC223Token {
+contract TrivialToken is ERC223Token, PullPayment {
 
     //Constants
     string constant NAME = 'Trivial';
@@ -54,8 +55,8 @@ contract TrivialToken is ERC223Token {
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
-    modifier onlyKeyHolders() { require(balances[msg.sender] >= safeDiv(
-        safeMul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
+    modifier onlyKeyHolders() { require(balances[msg.sender] >= ZeppelinSafeMath.div(
+        ZeppelinSafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
     }
 
     function TrivialToken(
@@ -158,6 +159,7 @@ contract TrivialToken is ERC223Token {
         require(msg.value >= highestBid + MIN_ETH_AMOUNT);
 
         highestBidder.transfer(highestBid);
+        asyncSend(highestBidder, highestBid);
         highestBidder = msg.sender;
         highestBid = msg.value;
 
@@ -194,12 +196,12 @@ contract TrivialToken is ERC223Token {
         balances[holder] = 0;
 
         holder.transfer(
-            safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
+            ZeppelinSafeMath.div(ZeppelinSafeMath.mul(highestBid, availableTokens), TOTAL_SUPPLY)
         );
     }
 
     function isKeyHolder(address person) constant returns (bool) {
-        return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        return balances[person] >= ZeppelinSafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     /*
         General methods
