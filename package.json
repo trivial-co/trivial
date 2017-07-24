@@ -7,8 +7,14 @@
     "test": "test"
   },
   "scripts": {
-    "migrate": "truffle migrate --network development",
+    "clean": "rimraf build",
+    "precompile": "npm run clean",
+    "compile": "truffle compile",
+    "premigrate": "npm run clean",
+    "migrate": "truffle migrate",
+    "premigrate-public": "npm run clean",
     "migrate-public": "truffle migrate --network ropsten",
+    "pretest": "npm run clean",
     "test": "truffle test --network development"
   },
   "repository": {
@@ -24,5 +30,8 @@
   "dependencies": {
     "truffle": "^3.4.5",
     "truffle-hdwallet-provider": "0.0.3"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.1"
   }
 }
