@@ -31,12 +31,12 @@ contract TrivialToken is ERC223Token {
     uint256 public highestBid;
 
     //Events
-    event IcoStarted(uint256 endTime);
+    event IcoStarted(uint256 icoEndTime);
     event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
-    event AuctionStarted(uint256 auctionTime);
-    event HighestBidChanged(address bidder, uint256 bid);
-    event AuctionFinished(address bidder, uint256 bid);
+    event AuctionStarted(uint256 auctionEndTime);
+    event HighestBidChanged(address highestBidder, uint256 highestBid);
+    event AuctionFinished(address highestBidder, uint256 highestBid);
 
     //State
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
