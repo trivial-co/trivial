@@ -31,7 +31,7 @@ contract TrivialToken is ERC223Token {
     uint256 public highestBid;
 
     //Events
-    event IcoStarted(uint256 endTime);
+    event IcoStarted(uint256 icoEndTime);
     event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
     event AuctionStarted(uint256 auctionEndTime);
