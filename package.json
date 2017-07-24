@@ -10,7 +10,7 @@
     "compile": "rimraf build && truffle compile",
     "migrate": "rimraf build && truffle migrate",
     "migrate-public": "rimraf build && truffle migrate --network ropsten",
-    "test": "truffle test --network development"
+    "test": "rimraf build && truffle test --network development"
   },
   "repository": {
     "type": "git",
