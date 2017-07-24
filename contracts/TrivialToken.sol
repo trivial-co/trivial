@@ -157,9 +157,15 @@ contract TrivialToken is ERC223Token {
         uint256 overBidForUser = 0;
         uint256 contribution = balanceOf(msg.sender);
         if (contribution > 0) {
-            overBidForUser = safeDiv(
-               safeMul(msg.value, contribution),
-               TOTAL_SUPPLY
+            //Formula: (sentETH * allTokens) / (allTokens - userTokens)) - sentETH
+            //User sends 16ETH, has 40 of 200 tokens
+            //(16 * 200) / (200 - 40) - 16 => 3200 / 160 - 16 => 20 - 16 => 4
+            overBidForUser = safeSub(
+                safeDiv(
+                    safeMul(msg.value, TOTAL_SUPPLY),
+                    safeSub(TOTAL_SUPPLY, contribution)
+                ),
+                msg.value
             );
         }
         require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, MIN_ETH_AMOUNT));
@@ -168,9 +174,12 @@ contract TrivialToken is ERC223Token {
             uint256 overBidForReturn;
             uint256 contributed = balanceOf(highestBidder);
             if (contributed > 0) {
+                //Formula: (highestBid * userTokens) / allTokens
+                //User sent 16ETH, had 20% of 200 tokens => 20ETH bid
+                //(20 * 40) / 200 => 800 / 200 => 4
                 overBidForReturn = safeDiv(
-                    safeMul(highestBid, TOTAL_SUPPLY),
-                    safeAdd(TOTAL_SUPPLY, contributed)
+                    safeMul(highestBid, contributed),
+                    TOTAL_SUPPLY
                 );
             }
             highestBidder.transfer(safeSub(highestBid, overBidForReturn));
