@@ -7,10 +7,15 @@
     "test": "test"
   },
   "scripts": {
-    "compile": "rimraf build && truffle compile",
-    "migrate": "rimraf build && truffle migrate",
-    "migrate-public": "rimraf build && truffle migrate --network ropsten",
-    "test": "rimraf build && truffle test --network development"
+    "clean": "rimraf build",
+    "precompile": "npm run clean",
+    "compile": "truffle compile",
+    "premigrate": "npm run clean",
+    "migrate": "truffle migrate",
+    "premigrate-public": "npm run clean",
+    "migrate-public": "truffle migrate --network ropsten",
+    "pretest": "npm run clean",
+    "test": "truffle test --network development"
   },
   "repository": {
     "type": "git",
