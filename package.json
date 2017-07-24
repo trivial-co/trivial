@@ -7,8 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "migrate": "truffle migrate",
-    "migrate-public": "truffle migrate --network ropsten",
+    "compile": "rimraf build && truffle compile",
+    "migrate": "rimraf build && truffle migrate",
+    "migrate-public": "rimraf build && truffle migrate --network ropsten",
     "test": "truffle test --network development"
   },
   "repository": {
