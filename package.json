@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "migrate": "truffle migrate --network development",
+    "migrate": "truffle migrate",
     "migrate-public": "truffle migrate --network ropsten",
     "test": "truffle test --network development"
   },
@@ -24,5 +24,8 @@
   "dependencies": {
     "truffle": "^3.4.5",
     "truffle-hdwallet-provider": "0.0.3"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.1"
   }
 }
