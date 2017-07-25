@@ -7,6 +7,8 @@ contract('TrivialToken - ICO tests', (accounts) => {
 
     beforeEach(async () => {
         token = await DevelopmentToken.new(
+            'TrivialTest',
+            'TRVLTEST',
             Math.floor(Date.now() / 1000 + 600),
             600,
             '0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5',
