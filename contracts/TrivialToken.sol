@@ -157,7 +157,7 @@ contract TrivialToken is ERC223Token {
         uint256 overBidForUser = 0;
         uint256 contribution = balanceOf(msg.sender);
         if (contribution > 0) {
-            //Formula: (sentETH * allTokens) / (allTokens - userTokens)) - sentETH
+            //Formula: (sentETH * allTokens) / (allTokens - userTokens) - sentETH
             //User sends 16ETH, has 40 of 200 tokens
             //(16 * 200) / (200 - 40) - 16 => 3200 / 160 - 16 => 20 - 16 => 4
             overBidForUser = safeSub(
