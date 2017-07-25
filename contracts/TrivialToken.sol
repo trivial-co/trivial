@@ -183,12 +183,9 @@ contract TrivialToken is ERC223Token {
             //Formula: (sentETH * allTokens) / (allTokens - userTokens)
             //User sends 16ETH, has 40 of 200 tokens
             //(16 * 200) / (200 - 40) => 3200 / 160 => 20
-            bid = safeSub(
-                safeDiv(
-                    safeMul(msg.value, TOTAL_SUPPLY),
-                    safeSub(TOTAL_SUPPLY, contribution)
-                ),
-                msg.value
+            bid = safeDiv(
+                safeMul(msg.value, TOTAL_SUPPLY),
+                safeSub(TOTAL_SUPPLY, contribution)
             );
         }
         return bid;
