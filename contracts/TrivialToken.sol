@@ -114,6 +114,12 @@ contract TrivialToken is ERC223Token {
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
+        distributeTokens();
+        artist.transfer(this.balance);
+    }
+
+    function distributeTokens() private
+    onlyInState(State.IcoFinished) {
         balances[artist] += tokensForArtist;
         balances[trivial] += tokensForTrivial;
 
