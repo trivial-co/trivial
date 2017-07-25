@@ -154,7 +154,7 @@ contract TrivialToken is ERC223Token {
     function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
-        //Must be grater or equal to minimal amount
+        //Must be greater or equal to minimal amount
         require(msg.value >= MIN_ETH_AMOUNT);
         uint256 overBidForUser = 0;
         uint256 contribution = balanceOf(msg.sender);
