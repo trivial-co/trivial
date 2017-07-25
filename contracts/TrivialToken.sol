@@ -231,6 +231,15 @@ contract TrivialToken is ERC223Token {
         return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     /*
+        End methods
+    */
+    function killContract()
+    onlyInState(State.AuctionFinished)
+    onlyTrivial() {
+        selfdestruct(trivial);
+    }
+
+    /*
         General methods
     */
 
