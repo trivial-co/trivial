@@ -158,13 +158,32 @@ contract TrivialToken is ERC223Token {
     onlyBefore(auctionEndTime) {
         //Must be greater or equal to minimal amount
         require(msg.value >= MIN_ETH_AMOUNT);
-        uint256 overBidForUser = 0;
+        uint256 bid = calculateUserBid();
+
+        //If there was a bid already
+        if (highestBid >= MIN_ETH_AMOUNT) {
+            //Must be greater or equal to 105% of previous bid
+            uint256 minimalOverBid = safeAdd(highestBid, safeDiv(
+                safeMul(highestBid, MIN_BID_PERCENTAGE), 100
+            ));
+            require(bid >= minimalOverBid);
+            //Return to previous bidder his balance
+            highestBidder.transfer(this.balance);
+        }
+
+        highestBidder = msg.sender;
+        highestBid = bid;
+        HighestBidChanged(highestBidder, highestBid);
+    }
+
+    function calculateUserBid() private returns (uint256) {
+        uint256 bid = msg.value;
         uint256 contribution = balanceOf(msg.sender);
         if (contribution > 0) {
-            //Formula: (sentETH * allTokens) / (allTokens - userTokens) - sentETH
+            //Formula: (sentETH * allTokens) / (allTokens - userTokens)
             //User sends 16ETH, has 40 of 200 tokens
-            //(16 * 200) / (200 - 40) - 16 => 3200 / 160 - 16 => 20 - 16 => 4
-            overBidForUser = safeSub(
+            //(16 * 200) / (200 - 40) => 3200 / 160 => 20
+            bid = safeSub(
                 safeDiv(
                     safeMul(msg.value, TOTAL_SUPPLY),
                     safeSub(TOTAL_SUPPLY, contribution)
@@ -172,21 +191,7 @@ contract TrivialToken is ERC223Token {
                 msg.value
             );
         }
-
-        //If there was a bid already
-        if (highestBid >= MIN_ETH_AMOUNT) {
-            //Must be greater or equal to 105% of previous bid
-            require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, safeDiv(
-                safeMul(highestBid, MIN_BID_PERCENTAGE), 100
-            )));
-
-            highestBidder.transfer(this.balance);
-        }
-
-        highestBidder = msg.sender;
-        highestBid = safeAdd(msg.value, overBidForUser);
-
-        HighestBidChanged(highestBidder, highestBid);
+        return bid;
     }
 
     function finishAuction()
