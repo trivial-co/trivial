@@ -37,7 +37,7 @@ contract TrivialToken is ERC223Token {
     event AuctionFinished(address highestBidder, uint256 highestBid);
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, Finished }
     State public currentState;
 
     //Token contributors and holders
@@ -228,6 +228,21 @@ contract TrivialToken is ERC223Token {
 
     function isKeyHolder(address person) constant returns (bool) {
         return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+
+    /*
+        End methods
+    */
+    function finishContract()
+    onlyInState(State.AuctionFinished)
+    onlyTrivial() {
+        currentState = State.Finished;
+    }
+
+    function killContract()
+    onlyInState(State.Finished)
+    onlyTrivial() {
+        selfdestruct(trivial);
+    }
 
     /*
         General methods
