@@ -66,6 +66,8 @@ contract TrivialToken is ERC223Token {
     ) {
         require(now < _icoEndTime);
         require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
+        require(MIN_BID_PERCENTAGE < 100);
+        require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
         name = NAME;
         symbol = SYMBOL;
