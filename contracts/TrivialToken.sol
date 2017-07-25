@@ -171,24 +171,14 @@ contract TrivialToken is ERC223Token {
             );
         }
 
+        //If there was a bid already
         if (highestBid >= MIN_ETH_AMOUNT) {
             //Must be greater or equal to 105% of previous bid
             require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, safeDiv(
                 safeMul(highestBid, MIN_BID_PERCENTAGE), 100
             )));
 
-            uint256 overBidForReturn;
-            uint256 contributed = balanceOf(highestBidder);
-            if (contributed > 0) {
-                //Formula: (highestBid * userTokens) / allTokens
-                //User sent 16ETH, had 20% of 200 tokens => 20ETH bid
-                //(20 * 40) / 200 => 800 / 200 => 4
-                overBidForReturn = safeDiv(
-                    safeMul(highestBid, contributed),
-                    TOTAL_SUPPLY
-                );
-            }
-            highestBidder.transfer(safeSub(highestBid, overBidForReturn));
+            highestBidder.transfer(this.balance);
         }
 
         highestBidder = msg.sender;
