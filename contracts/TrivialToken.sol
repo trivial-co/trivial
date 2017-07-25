@@ -115,7 +115,7 @@ contract TrivialToken is ERC223Token {
         IcoFinished(amountRaised);
 
         distributeTokens();
-        rewardArtist();
+        artist.transfer(this.balance);
     }
 
     function distributeTokens() private
@@ -138,15 +138,6 @@ contract TrivialToken is ERC223Token {
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
-    }
-
-    function rewardArtist() private
-    onlyInState(State.IcoFinished) {
-        uint256 rewardFromIco = safeDiv(
-            safeMul(amountRaised, tokensForArtist),
-            TOTAL_SUPPLY
-        );
-        artist.transfer(rewardFromIco);
     }
 
     function checkContribution(address contributor) constant returns (uint) {
