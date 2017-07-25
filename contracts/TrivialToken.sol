@@ -113,6 +113,12 @@ contract TrivialToken is ERC223Token {
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
 
+        distributeTokens();
+        rewardArtist();
+    }
+
+    function distributeTokens() private
+    onlyInState(State.IcoFinished) {
         balances[artist] += tokensForArtist;
         balances[trivial] += tokensForTrivial;
 
@@ -131,6 +137,15 @@ contract TrivialToken is ERC223Token {
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
+    }
+
+    function rewardArtist() private
+    onlyInState(State.IcoFinished) {
+        uint256 rewardFromIco = safeDiv(
+            safeMul(amountRaised, tokensForArtist),
+            TOTAL_SUPPLY
+        );
+        artist.transfer(rewardFromIco);
     }
 
     function checkContribution(address contributor) constant returns (uint) {
