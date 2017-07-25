@@ -8,6 +8,7 @@ contract TrivialToken is ERC223Token {
     string constant SYMBOL = 'TRVL';
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
+    uint256 constant MIN_BID_PERCENTAGE = 5;
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
 
@@ -153,6 +154,7 @@ contract TrivialToken is ERC223Token {
     function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
+        //Must be grater or equal to minimal amount
         require(msg.value >= MIN_ETH_AMOUNT);
         uint256 overBidForUser = 0;
         uint256 contribution = balanceOf(msg.sender);
@@ -168,9 +170,13 @@ contract TrivialToken is ERC223Token {
                 msg.value
             );
         }
-        require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, MIN_ETH_AMOUNT));
 
         if (highestBid >= MIN_ETH_AMOUNT) {
+            //Must be greater or equal to 105% of previous bid
+            require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, safeDiv(
+                safeMul(highestBid, MIN_BID_PERCENTAGE), 100
+            )));
+
             uint256 overBidForReturn;
             uint256 contributed = balanceOf(highestBidder);
             if (contributed > 0) {
