@@ -273,15 +273,15 @@ contract TrivialToken is ERC223Token, PullPayment {
 
     function transfer(address _to, uint _value, bytes _data) returns (bool success) {
         success = ERC223Token.transfer(_to, _value, _data);
-        if (success) {
-            tokenHolders.push(_to);
-        }
+        if (success) { tokenHolders.push(_to); }
         return success;
     }
 
     function transfer(address _to, uint _value) returns (bool success) {
-        bytes memory empty;
-        return transfer(_to, _value, empty);
+        success = ERC223Token.transfer(_to, _value);
+        if (success) { tokenHolders.push(_to); }
+        //Return event has to be ERC20
+        return transfer(_to, _value);
     }
 
     function () payable {
