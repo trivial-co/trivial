@@ -7,8 +7,14 @@
     "test": "test"
   },
   "scripts": {
-    "migrate": "truffle migrate --network development",
+    "clean": "rimraf build",
+    "precompile": "npm run clean",
+    "compile": "truffle compile",
+    "premigrate": "npm run clean",
+    "migrate": "truffle migrate",
+    "premigrate-public": "npm run clean",
     "migrate-public": "truffle migrate --network ropsten",
+    "pretest": "npm run clean",
     "test": "truffle test --network development"
   },
   "repository": {
@@ -22,8 +28,11 @@
   },
   "homepage": "https://github.com/10clouds/trivial#readme",
   "dependencies": {
-    "zeppelin-solidity": "^1.2.0",
     "truffle": "^3.4.5",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "0.0.3",
+    "zeppelin-solidity": "^1.2.0"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.1"
   }
 }
