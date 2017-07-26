@@ -255,12 +255,14 @@ contract TrivialToken is ERC223Token {
     // helper function to avoid too many contract calls on frontend side
     function getContractState() constant returns (
         uint256, uint256, uint256, uint256, uint256,
-        uint256, uint256, address, uint256, State
+        uint256, uint256, address, uint256, State,
+        uint256
     ) {
         return (
             icoEndTime, auctionDuration, auctionEndTime,
             tokensForArtist, tokensForTrivial, tokensForIco,
-            amountRaised, highestBidder, highestBid, currentState
+            amountRaised, highestBidder, highestBid, currentState,
+            TOKENS_PERCENTAGE_FOR_KEY_HOLDER
         );
     }
 
