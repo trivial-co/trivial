@@ -120,7 +120,9 @@ contract TrivialToken is ERC223Token, PullPayment {
         IcoFinished(amountRaised);
 
         distributeTokens();
-        artist.transfer(this.balance);
+        if (!artist.send(this.balance)) {
+            asyncSend(artist, this.balance);
+        }
     }
 
     function distributeTokens() private
@@ -176,13 +178,15 @@ contract TrivialToken is ERC223Token, PullPayment {
             ));
             require(bid >= minimalOverBid);
             //Return to previous bidder his balance
-            //Value to return: current balance - current bid
-            uint256 amountToReturn = SafeMath.sub(
+            //Value to return: current balance - current bid - paymentsInAsyncSend
+            uint256 amountToReturn = SafeMath.sub(SafeMath.sub(
                 this.balance, msg.value
-            );
+            ), totalPayments);
             highestBidder.transfer(amountToReturn);
-            //TODO: Will issue that in branch TRIV-18
-            //asyncSend(highestBidder, amountToReturn);
+            //TODO: Can we implement withdrawal here?
+            /*if (!highestBidder.send(amountToReturn)) {
+                asyncSend(highestBidder, amountToReturn);
+            }*/
         }
 
         highestBidder = msg.sender;
@@ -225,7 +229,8 @@ contract TrivialToken is ERC223Token, PullPayment {
                 withdrawShares(holder);
             }
         }
-        artist.transfer(this.balance);
+        uint256 leftovers = SafeMath.sub(this.balance, totalPayments);
+        asyncSend(artist, leftovers);
     }
 
     function withdrawShares(address holder) private
@@ -235,7 +240,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         balances[holder] = 0;
 
         if (holder != highestBidder) {
-            holder.transfer(
+            asyncSend(
+                holder,
                 SafeMath.div(SafeMath.mul(highestBid, availableTokens), TOTAL_SUPPLY)
             );
         }
@@ -278,10 +284,8 @@ contract TrivialToken is ERC223Token, PullPayment {
     }
 
     function transfer(address _to, uint _value) returns (bool success) {
-        success = ERC223Token.transfer(_to, _value);
-        if (success) { tokenHolders.push(_to); }
-        //Return event has to be ERC20
-        return transfer(_to, _value);
+        bytes memory empty;
+        return transfer(_to, _value, empty);
     }
 
     function () payable {
