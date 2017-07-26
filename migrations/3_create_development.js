@@ -3,6 +3,8 @@ var DevelopmentTrivialToken = artifacts.require("./DevelopmentTrivialToken.sol")
 module.exports = function(deployer) {
   deployer.deploy(
       DevelopmentTrivialToken,
+      'TrivialDev',
+      'TRVLDEV',
       Math.floor(Date.now() / 1000 + 600),
       600,
       '0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5',

@@ -4,8 +4,6 @@ import "./ERC223_Token.sol";
 
 contract TrivialToken is ERC223Token {
     //Constants
-    string constant NAME = 'Trivial';
-    string constant SYMBOL = 'TRVL';
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
     uint256 constant MIN_BID_PERCENTAGE = 5;
@@ -58,6 +56,7 @@ contract TrivialToken is ERC223Token {
     }
 
     function TrivialToken(
+        string _name, string _symbol,
         uint256 _icoEndTime, uint256 _auctionDuration,
         address _artist, address _trivial,
         uint256 _tokensForArtist,
@@ -69,8 +68,8 @@ contract TrivialToken is ERC223Token {
         require(MIN_BID_PERCENTAGE < 100);
         require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
-        name = NAME;
-        symbol = SYMBOL;
+        name = _name;
+        symbol = _symbol;
         decimals = DECIMALS;
 
         icoEndTime = _icoEndTime;
