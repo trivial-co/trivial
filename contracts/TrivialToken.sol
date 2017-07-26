@@ -1,8 +1,11 @@
 pragma solidity ^0.4.11;
 
-import "./ERC223_Token.sol";
+import "zeppelin-solidity/contracts/payment/PullPayment.sol";
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "./token/ERC223Token.sol";
 
-contract TrivialToken is ERC223Token {
+contract TrivialToken is ERC223Token, PullPayment {
+
     //Constants
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
@@ -51,8 +54,8 @@ contract TrivialToken is ERC223Token {
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
-    modifier onlyKeyHolders() { require(balances[msg.sender] >= safeDiv(
-        safeMul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
+    modifier onlyKeyHolders() { require(balances[msg.sender] >= SafeMath.div(
+        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
     }
 
     function TrivialToken(
@@ -128,15 +131,15 @@ contract TrivialToken is ERC223Token {
         uint256 tokensForContributors = 0;
         for (uint i = 0; i < contributors.length; i++) {
             address currentContributor = contributors[i];
-            uint256 tokensForContributor = safeDiv(
-                safeMul(tokensForIco, contributions[currentContributor]),
+            uint256 tokensForContributor = SafeMath.div(
+                SafeMath.mul(tokensForIco, contributions[currentContributor]),
                 amountRaised
             );
             balances[currentContributor] += tokensForContributor;
             tokensForContributors += tokensForContributor;
         }
 
-        uint256 leftovers = safeSub(tokensForIco, tokensForContributors);
+        uint256 leftovers = SafeMath.sub(tokensForIco, tokensForContributors);
         if (leftovers > 0) {
             balances[artist] += leftovers;
         }
@@ -168,16 +171,18 @@ contract TrivialToken is ERC223Token {
         //If there was a bid already
         if (highestBid >= MIN_ETH_AMOUNT) {
             //Must be greater or equal to 105% of previous bid
-            uint256 minimalOverBid = safeAdd(highestBid, safeDiv(
-                safeMul(highestBid, MIN_BID_PERCENTAGE), 100
+            uint256 minimalOverBid = SafeMath.add(highestBid, SafeMath.div(
+                SafeMath.mul(highestBid, MIN_BID_PERCENTAGE), 100
             ));
             require(bid >= minimalOverBid);
             //Return to previous bidder his balance
             //Value to return: current balance - current bid
-            highestBidder.transfer(safeSub(
-                this.balance,
-                msg.value
-            ));
+            uint256 amountToReturn = SafeMath.sub(
+                this.balance, msg.value
+            );
+            highestBidder.transfer(amountToReturn);
+            //TODO: Will issue that in branch TRIV-18
+            //asyncSend(highestBidder, amountToReturn);
         }
 
         highestBidder = msg.sender;
@@ -192,9 +197,9 @@ contract TrivialToken is ERC223Token {
             //Formula: (sentETH * allTokens) / (allTokens - userTokens)
             //User sends 16ETH, has 40 of 200 tokens
             //(16 * 200) / (200 - 40) => 3200 / 160 => 20
-            bid = safeDiv(
-                safeMul(msg.value, TOTAL_SUPPLY),
-                safeSub(TOTAL_SUPPLY, contribution)
+            bid = SafeMath.div(
+                SafeMath.mul(msg.value, TOTAL_SUPPLY),
+                SafeMath.sub(TOTAL_SUPPLY, contribution)
             );
         }
         return bid;
@@ -231,13 +236,13 @@ contract TrivialToken is ERC223Token {
 
         if (holder != highestBidder) {
             holder.transfer(
-                safeDiv(safeMul(highestBid, availableTokens), TOTAL_SUPPLY)
+                SafeMath.div(SafeMath.mul(highestBid, availableTokens), TOTAL_SUPPLY)
             );
         }
     }
 
     function isKeyHolder(address person) constant returns (bool) {
-        return balances[person] >= safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        return balances[person] >= SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     /*
         End methods

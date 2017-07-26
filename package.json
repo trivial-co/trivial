@@ -29,7 +29,8 @@
   "homepage": "https://github.com/10clouds/trivial#readme",
   "dependencies": {
     "truffle": "^3.4.5",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "0.0.3",
+    "zeppelin-solidity": "^1.2.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1"

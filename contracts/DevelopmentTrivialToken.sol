@@ -1,5 +1,6 @@
 pragma solidity ^0.4.11;
 
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./TrivialToken.sol";
 
 contract DevelopmentTrivialToken is TrivialToken {
@@ -33,7 +34,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function getArtist() constant returns (address) { return artist; }
     function getSelf() constant returns (address) { return msg.sender; }
     function becomeKeyHolder() {
-        balances[msg.sender] = safeDiv(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        balances[msg.sender] = SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     function setIcoEndTime(uint256 time) { icoEndTime = time; }
     function setIcoEndTimeOneMinute() { icoEndTime = now + 1 minutes; }
