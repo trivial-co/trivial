@@ -188,11 +188,9 @@ contract TrivialToken is ERC223Token, PullPayment {
             uint256 amountToReturn = SafeMath.sub(SafeMath.sub(
                 this.balance, msg.value
             ), totalPayments);
-            highestBidder.transfer(amountToReturn);
-            //TODO: Can we implement withdrawal here?
-            /*if (!highestBidder.send(amountToReturn)) {
+            if (!highestBidder.send(amountToReturn)) {
                 asyncSend(highestBidder, amountToReturn);
-            }*/
+            }
         }
 
         highestBidder = msg.sender;
