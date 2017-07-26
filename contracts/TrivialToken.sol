@@ -173,7 +173,11 @@ contract TrivialToken is ERC223Token {
             ));
             require(bid >= minimalOverBid);
             //Return to previous bidder his balance
-            highestBidder.transfer(this.balance);
+            //Value to return: current balance - current bid
+            highestBidder.transfer(safeSub(
+                this.balance,
+                msg.value
+            ));
         }
 
         highestBidder = msg.sender;
