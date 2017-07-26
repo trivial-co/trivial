@@ -6,6 +6,7 @@ contract TrivialToken is ERC223Token {
     //Constants
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
+    uint256 constant MIN_BID_PERCENTAGE = 5;
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
 
@@ -37,7 +38,7 @@ contract TrivialToken is ERC223Token {
     event AuctionFinished(address highestBidder, uint256 highestBid);
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, Finished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
     State public currentState;
 
     //Token contributors and holders
@@ -64,6 +65,8 @@ contract TrivialToken is ERC223Token {
     ) {
         require(now < _icoEndTime);
         require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
+        require(MIN_BID_PERCENTAGE < 100);
+        require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
         name = _name;
         symbol = _symbol;
@@ -114,7 +117,7 @@ contract TrivialToken is ERC223Token {
         IcoFinished(amountRaised);
 
         distributeTokens();
-        rewardArtist();
+        artist.transfer(this.balance);
     }
 
     function distributeTokens() private
@@ -139,15 +142,6 @@ contract TrivialToken is ERC223Token {
         }
     }
 
-    function rewardArtist() private
-    onlyInState(State.IcoFinished) {
-        uint256 rewardFromIco = safeDiv(
-            safeMul(amountRaised, tokensForArtist),
-            TOTAL_SUPPLY
-        );
-        artist.transfer(rewardFromIco);
-    }
-
     function checkContribution(address contributor) constant returns (uint) {
         return contributions[contributor];
     }
@@ -167,42 +161,39 @@ contract TrivialToken is ERC223Token {
     function bidInAuction() payable
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
+        //Must be greater or equal to minimal amount
         require(msg.value >= MIN_ETH_AMOUNT);
-        uint256 overBidForUser = 0;
-        uint256 contribution = balanceOf(msg.sender);
-        if (contribution > 0) {
-            //Formula: (sentETH * allTokens) / (allTokens - userTokens) - sentETH
-            //User sends 16ETH, has 40 of 200 tokens
-            //(16 * 200) / (200 - 40) - 16 => 3200 / 160 - 16 => 20 - 16 => 4
-            overBidForUser = safeSub(
-                safeDiv(
-                    safeMul(msg.value, TOTAL_SUPPLY),
-                    safeSub(TOTAL_SUPPLY, contribution)
-                ),
-                msg.value
-            );
-        }
-        require(safeAdd(msg.value, overBidForUser) >= safeAdd(highestBid, MIN_ETH_AMOUNT));
+        uint256 bid = calculateUserBid();
 
+        //If there was a bid already
         if (highestBid >= MIN_ETH_AMOUNT) {
-            uint256 overBidForReturn;
-            uint256 contributed = balanceOf(highestBidder);
-            if (contributed > 0) {
-                //Formula: (highestBid * userTokens) / allTokens
-                //User sent 16ETH, had 20% of 200 tokens => 20ETH bid
-                //(20 * 40) / 200 => 800 / 200 => 4
-                overBidForReturn = safeDiv(
-                    safeMul(highestBid, contributed),
-                    TOTAL_SUPPLY
-                );
-            }
-            highestBidder.transfer(safeSub(highestBid, overBidForReturn));
+            //Must be greater or equal to 105% of previous bid
+            uint256 minimalOverBid = safeAdd(highestBid, safeDiv(
+                safeMul(highestBid, MIN_BID_PERCENTAGE), 100
+            ));
+            require(bid >= minimalOverBid);
+            //Return to previous bidder his balance
+            highestBidder.transfer(this.balance);
         }
 
         highestBidder = msg.sender;
-        highestBid = safeAdd(msg.value, overBidForUser);
-
+        highestBid = bid;
         HighestBidChanged(highestBidder, highestBid);
+    }
+
+    function calculateUserBid() private returns (uint256) {
+        uint256 bid = msg.value;
+        uint256 contribution = balanceOf(msg.sender);
+        if (contribution > 0) {
+            //Formula: (sentETH * allTokens) / (allTokens - userTokens)
+            //User sends 16ETH, has 40 of 200 tokens
+            //(16 * 200) / (200 - 40) => 3200 / 160 => 20
+            bid = safeDiv(
+                safeMul(msg.value, TOTAL_SUPPLY),
+                safeSub(TOTAL_SUPPLY, contribution)
+            );
+        }
+        return bid;
     }
 
     function finishAuction()
@@ -247,14 +238,8 @@ contract TrivialToken is ERC223Token {
     /*
         End methods
     */
-    function finishContract()
-    onlyInState(State.AuctionFinished)
-    onlyTrivial() {
-        currentState = State.Finished;
-    }
-
     function killContract()
-    onlyInState(State.Finished)
+    onlyInState(State.AuctionFinished)
     onlyTrivial() {
         selfdestruct(trivial);
     }
