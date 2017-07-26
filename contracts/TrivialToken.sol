@@ -1,8 +1,8 @@
 pragma solidity ^0.4.11;
 
-import "./token/ERC223_Token.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "./token/ERC223Token.sol";
 
 contract TrivialToken is ERC223Token, PullPayment {
 
@@ -181,6 +181,7 @@ contract TrivialToken is ERC223Token, PullPayment {
                 this.balance, msg.value
             );
             highestBidder.transfer(amountToReturn);
+            //TODO: Will issue that in branch TRIV-18
             //asyncSend(highestBidder, amountToReturn);
         }
 
