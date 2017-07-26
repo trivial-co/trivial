@@ -31,6 +31,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 public amountRaised;
     address public highestBidder;
     uint256 public highestBid;
+    bytes32 public auctionWinnerMessageHash;
 
     //Events
     event IcoStarted(uint256 icoEndTime);
@@ -56,6 +57,11 @@ contract TrivialToken is ERC223Token, PullPayment {
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
     modifier onlyKeyHolders() { require(balances[msg.sender] >= SafeMath.div(
         SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
+    }
+    modifier onlyAuctionWinner() {
+        require(currentState == State.AuctionFinished);
+        require(msg.sender == highestBidder);
+        _;
     }
 
     function TrivialToken(
@@ -262,6 +268,10 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         General methods
     */
+
+    function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash) onlyAuctionWinner() {
+        auctionWinnerMessageHash = _auctionWinnerMessageHash;
+    }
 
     // helper function to avoid too many contract calls on frontend side
     function getContractState() constant returns (
