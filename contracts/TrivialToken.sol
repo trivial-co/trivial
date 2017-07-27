@@ -227,6 +227,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     function finishAuction()
     onlyInState(State.AuctionStarted)
     onlyAfter(auctionEndTime) {
+        require(highestBid > 0);  // auction cannot be finished until at least one person bids
         currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
 
