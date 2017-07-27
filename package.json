@@ -15,7 +15,9 @@
     "premigrate-public": "npm run clean",
     "migrate-public": "truffle migrate --network ropsten",
     "pretest": "npm run clean",
-    "test": "truffle test --network development"
+    "test": "truffle test --network development",
+    "pretest-public": "npm run clean",
+    "test-public": "truffle test --network ropsten"
   },
   "repository": {
     "type": "git",
