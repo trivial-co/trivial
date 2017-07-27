@@ -265,7 +265,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         currentState = State.IcoCancelled;
         IcoCancelled();
 
-        for (uint i = 0; i < contributors.length; i++) {
+        for (uint256 i = 0; i < contributors.length; i++) {
             address contributor = contributors[i];
             uint256 contribution = contributions[contributor];
             contributions[contributor] = 0;
