@@ -309,13 +309,14 @@ contract TrivialToken is ERC223Token, PullPayment {
         );
     }
 
-    function transfer(address _to, uint _value, bytes _data) returns (bool success) {
+    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool success) {
         success = ERC223Token.transfer(_to, _value, _data);
         if (success) { tokenHolders.push(_to); }
         return success;
     }
 
     function transfer(address _to, uint _value) returns (bool success) {
+        // onlyInState(IcoFinished) check is contained in a call below
         bytes memory empty;
         return transfer(_to, _value, empty);
     }
