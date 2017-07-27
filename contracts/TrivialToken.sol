@@ -127,6 +127,10 @@ contract TrivialToken is ERC223Token, PullPayment {
     function finishIco()
     onlyInState(State.IcoStarted)
     onlyAfter(icoEndTime) {
+        if (amountRaised == 0) {
+            currentState = State.IcoCancelled;
+            return;
+        }
         tokenHolders = contributors;
 
         currentState = State.IcoFinished;
@@ -148,7 +152,7 @@ contract TrivialToken is ERC223Token, PullPayment {
             address currentContributor = contributors[i];
             uint256 tokensForContributor = SafeMath.div(
                 SafeMath.mul(tokensForIco, contributions[currentContributor]),
-                amountRaised
+                amountRaised  // amountRaised can't be 0, ICO is cancelled then
             );
             balances[currentContributor] = SafeMath.add(balances[currentContributor], tokensForContributor);
             tokensForContributors = SafeMath.add(tokensForContributors, tokensForContributor);
