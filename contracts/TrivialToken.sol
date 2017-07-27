@@ -37,12 +37,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     event IcoStarted(uint256 icoEndTime);
     event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
+    event IcoCancelled();
     event AuctionStarted(uint256 auctionEndTime);
     event HighestBidChanged(address highestBidder, uint256 highestBid);
     event AuctionFinished(address highestBidder, uint256 highestBid);
+    event WinnerProvidedHash();
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, Finished }
     State public currentState;
 
     //Token contributors and holders
@@ -59,7 +61,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
     }
     modifier onlyAuctionWinner() {
-        require(currentState == State.AuctionFinished);
+        require(currentState == State.Finished);
         require(msg.sender == highestBidder);
         _;
     }
@@ -216,14 +218,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     function finishAuction()
     onlyInState(State.AuctionStarted)
     onlyAfter(auctionEndTime) {
-        currentState = State.AuctionFinished;
+        currentState = State.Finished;
         AuctionFinished(highestBidder, highestBid);
 
         withdrawAllShares();
     }
 
     function withdrawAllShares() private
-    onlyInState(State.AuctionFinished) {
+    onlyInState(State.Finished) {
         withdrawShares(artist);
         withdrawShares(trivial);
 
@@ -238,7 +240,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     }
 
     function withdrawShares(address holder) private
-    onlyInState(State.AuctionFinished) {
+    onlyInState(State.Finished) {
         uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
         balances[holder] = 0;
@@ -255,20 +257,34 @@ contract TrivialToken is ERC223Token, PullPayment {
         return balances[person] >= SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     /*
-        End methods
-    */
-    function killContract()
-    onlyInState(State.AuctionFinished)
-    onlyTrivial() {
-        selfdestruct(trivial);
-    }
-
-    /*
         General methods
     */
+    function cancelIco()
+    onlyInState(State.IcoStarted)
+    onlyTrivial() {
+        currentState = State.IcoCancelled;
+        IcoCancelled();
 
-    function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash) onlyAuctionWinner() {
+        for (uint i = 0; i < contributors.length; i++) {
+            address contributor = contributors[i];
+            uint256 contribution = contributions[contributor];
+            contributions[contributor] = 0;
+            if (!contributor.send(contribution)) {
+                asyncSend(contributor, contribution);
+            }
+        }
+    }
+
+    function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
+    onlyAuctionWinner() {
         auctionWinnerMessageHash = _auctionWinnerMessageHash;
+        WinnerProvidedHash();
+    }
+
+    function killContract()
+    onlyInState(State.Finished)
+    onlyTrivial() {
+        selfdestruct(trivial);
     }
 
     // helper function to avoid too many contract calls on frontend side
