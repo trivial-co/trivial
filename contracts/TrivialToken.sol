@@ -37,12 +37,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     event IcoStarted(uint256 icoEndTime);
     event IcoContributed(address contributor, uint256 amountContributed, uint256 amountRaised);
     event IcoFinished(uint256 amountRaised);
+    event IcoCancelled();
     event AuctionStarted(uint256 auctionEndTime);
     event HighestBidChanged(address highestBidder, uint256 highestBid);
     event AuctionFinished(address highestBidder, uint256 highestBid);
+    event WinnerProvidedHash();
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
     State public currentState;
 
     //Token contributors and holders
@@ -260,20 +262,37 @@ contract TrivialToken is ERC223Token, PullPayment {
         return balances[person] >= SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
 
     /*
-        End methods
-    */
-    function killContract()
-    onlyInState(State.AuctionFinished)
-    onlyTrivial() {
-        selfdestruct(trivial);
-    }
-
-    /*
         General methods
     */
+    function cancelIco()
+    onlyInState(State.IcoStarted)
+    onlyTrivial() {
+        currentState = State.IcoCancelled;
+        IcoCancelled();
 
-    function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash) onlyAuctionWinner() {
+        for (uint256 i = 0; i < contributors.length; i++) {
+            address contributor = contributors[i];
+            uint256 contribution = contributions[contributor];
+            contributions[contributor] = 0;
+            if (!contributor.send(contribution)) {
+                asyncSend(contributor, contribution);
+            }
+        }
+    }
+
+    function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
+    onlyAuctionWinner() {
         auctionWinnerMessageHash = _auctionWinnerMessageHash;
+        WinnerProvidedHash();
+    }
+
+    function killContract()
+    onlyTrivial() {
+        require(
+            currentState == State.AuctionFinished ||
+            currentState == State.IcoCancelled
+        );
+        selfdestruct(trivial);
     }
 
     // helper function to avoid too many contract calls on frontend side
