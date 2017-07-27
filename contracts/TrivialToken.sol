@@ -238,34 +238,16 @@ contract TrivialToken is ERC223Token, PullPayment {
         require(highestBid > 0);  // auction cannot be finished until at least one person bids
         currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
-
-        withdrawAllShares();
     }
 
-    function withdrawAllShares() private
-    onlyInState(State.AuctionFinished) {
-        withdrawShares(artist);
-        withdrawShares(trivial);
-
-        for (uint256 i = 0; i < tokenHolders.length; i++) {
-            address holder = tokenHolders[i];
-            if (balanceOf(holder) > 0) {
-                withdrawShares(holder);
-            }
-        }
-        uint256 leftovers = SafeMath.sub(this.balance, totalPayments);
-        asyncSend(artist, leftovers);
-    }
-
-    function withdrawShares(address holder) private
+    function withdrawShares(address holder) public
     onlyInState(State.AuctionFinished) {
         uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
         balances[holder] = 0;
 
         if (holder != highestBidder) {
-            asyncSend(
-                holder,
+            holder.transfer(
                 SafeMath.div(SafeMath.mul(highestBid, availableTokens), TOTAL_SUPPLY)
             );
         }
