@@ -44,7 +44,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     event WinnerProvidedHash();
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, Finished }
+    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
     State public currentState;
 
     //Token contributors and holders
@@ -61,7 +61,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
     }
     modifier onlyAuctionWinner() {
-        require(currentState == State.Finished);
+        require(currentState == State.AuctionFinished);
         require(msg.sender == highestBidder);
         _;
     }
@@ -218,14 +218,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     function finishAuction()
     onlyInState(State.AuctionStarted)
     onlyAfter(auctionEndTime) {
-        currentState = State.Finished;
+        currentState = State.AuctionFinished;
         AuctionFinished(highestBidder, highestBid);
 
         withdrawAllShares();
     }
 
     function withdrawAllShares() private
-    onlyInState(State.Finished) {
+    onlyInState(State.AuctionFinished) {
         withdrawShares(artist);
         withdrawShares(trivial);
 
@@ -240,7 +240,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     }
 
     function withdrawShares(address holder) private
-    onlyInState(State.Finished) {
+    onlyInState(State.AuctionFinished) {
         uint256 availableTokens = balances[holder];
         require(availableTokens > 0);
         balances[holder] = 0;
@@ -282,8 +282,11 @@ contract TrivialToken is ERC223Token, PullPayment {
     }
 
     function killContract()
-    onlyInState(State.Finished)
     onlyTrivial() {
+        require(
+            currentState == State.AuctionFinished ||
+            currentState == State.IcoCancelled
+        );
         selfdestruct(trivial);
     }
 
