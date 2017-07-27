@@ -175,9 +175,9 @@ contract TrivialToken is ERC223Token, PullPayment {
     onlyInState(State.IcoFinished)
     onlyKeyHolders() {
         // 100% tokens owner is the only key holder
-        if (balances[msg.owner] == TOKEN_SUPPLY) {
+        if (balances[msg.sender] == TOTAL_SUPPLY) {
             // no auction takes place,
-            highestBidder = msg.owner;
+            highestBidder = msg.sender;
             currentState = State.AuctionFinished;
             AuctionFinished(highestBidder, highestBid);
             return;
