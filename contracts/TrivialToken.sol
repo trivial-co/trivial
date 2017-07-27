@@ -73,7 +73,12 @@ contract TrivialToken is ERC223Token, PullPayment {
         uint256 _tokensForIco
     ) {
         require(now < _icoEndTime);
-        require(TOTAL_SUPPLY == _tokensForArtist + _tokensForTrivial + _tokensForIco);
+        require(
+            TOTAL_SUPPLY == SafeMath.add(
+                _tokensForArtist,
+                SafeMath.add(_tokensForTrivial, _tokensForIco)
+            )
+        );
         require(MIN_BID_PERCENTAGE < 100);
         require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
@@ -111,8 +116,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         if (contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
         }
-        contributions[msg.sender] += msg.value;
-        amountRaised += msg.value;
+        contributions[msg.sender] = SafeMath.add(contributions[msg.sender], msg.value);
+        amountRaised = SafeMath.add(amountRaised, msg.value);
 
         IcoContributed(msg.sender, msg.value, amountRaised);
     }
@@ -133,23 +138,23 @@ contract TrivialToken is ERC223Token, PullPayment {
 
     function distributeTokens() private
     onlyInState(State.IcoFinished) {
-        balances[artist] += tokensForArtist;
-        balances[trivial] += tokensForTrivial;
+        balances[artist] = SafeMath.add(balances[artist], tokensForArtist);
+        balances[trivial] = SafeMath.add(balances[trivial], tokensForTrivial);
 
         uint256 tokensForContributors = 0;
-        for (uint i = 0; i < contributors.length; i++) {
+        for (uint256 i = 0; i < contributors.length; i++) {
             address currentContributor = contributors[i];
             uint256 tokensForContributor = SafeMath.div(
                 SafeMath.mul(tokensForIco, contributions[currentContributor]),
                 amountRaised
             );
-            balances[currentContributor] += tokensForContributor;
-            tokensForContributors += tokensForContributor;
+            balances[currentContributor] = SafeMath.add(balances[currentContributor], tokensForContributor);
+            tokensForContributors = SafeMath.add(tokensForContributors, tokensForContributor);
         }
 
         uint256 leftovers = SafeMath.sub(tokensForIco, tokensForContributors);
         if (leftovers > 0) {
-            balances[artist] += leftovers;
+            balances[artist] = SafeMath.add(balances[artist], leftovers);
         }
     }
 
@@ -163,7 +168,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     function startAuction()
     onlyInState(State.IcoFinished)
     onlyKeyHolders() {
-        auctionEndTime = now + auctionDuration;
+        auctionEndTime = SafeMath.add(now, auctionDuration);
 
         currentState = State.AuctionStarted;
         AuctionStarted(auctionEndTime);
@@ -227,7 +232,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         withdrawShares(artist);
         withdrawShares(trivial);
 
-        for (uint i = 0; i < tokenHolders.length; i++) {
+        for (uint256 i = 0; i < tokenHolders.length; i++) {
             address holder = tokenHolders[i];
             if (balanceOf(holder) > 0) {
                 withdrawShares(holder);
