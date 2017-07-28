@@ -11,8 +11,8 @@ contract('TrivialToken - Auction tests', (accounts) => {
             'TRVLTEST',
             Math.floor(Date.now() / 1000 + 600),
             600,
-            '0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5',
-            '0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0',
+            accounts[8],
+            accounts[9],
             200000,
             100000,
             700000
@@ -100,4 +100,28 @@ contract('TrivialToken - Auction tests', (accounts) => {
         await bidAuction();
         await finishAuction();
     })
+
+    it('check Auction buyout - one user 100% tokens', async () => {
+        assert.isAbove(parseInt(await token.getTokens.call(me)), 0);
+        assert.isAbove(parseInt(await token.getTokens.call(accounts[8])), 0);
+        assert.isAbove(parseInt(await token.getTokens.call(accounts[0])), 0);
+        assert.isAbove(parseInt(await token.getTokens.call(accounts[1])), 0);
+        assert.isAbove(parseInt(await token.getTokens.call(accounts[2])), 0);
+        assert.isAbove(parseInt(await token.getTokens.call(accounts[3])), 0);
+        await token.setTokens(me, 0);
+        await token.setTokens(accounts[8], 0);
+        await token.setTokens(accounts[0], 0);
+        await token.setTokens(accounts[1], 0);
+        await token.setTokens(accounts[2], 0);
+        await token.setTokens(accounts[3], 1000000);
+        assert.equal(parseInt(await token.getTokens.call(me)), 0);
+        assert.equal(parseInt(await token.getTokens.call(accounts[8])), 0);
+        assert.equal(parseInt(await token.getTokens.call(accounts[0])), 0);
+        assert.equal(parseInt(await token.getTokens.call(accounts[1])), 0);
+        assert.equal(parseInt(await token.getTokens.call(accounts[2])), 0);
+        assert.equal(parseInt(await token.getTokens.call(accounts[3])), 1000000);
+        await token.startAuction({from: accounts[3]});
+        assert.equal(await token.currentState.call(), 4, 'Should be AuctionFinished');
+    })
+
 });

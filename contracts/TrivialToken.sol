@@ -156,6 +156,7 @@ contract TrivialToken is ERC223Token, PullPayment {
             );
             balances[currentContributor] = SafeMath.add(balances[currentContributor], tokensForContributor);
             tokensForContributors = SafeMath.add(tokensForContributors, tokensForContributor);
+            balances[trivial] += 1;
         }
 
         uint256 leftovers = SafeMath.sub(tokensForIco, tokensForContributors);

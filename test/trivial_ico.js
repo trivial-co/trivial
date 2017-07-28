@@ -11,8 +11,8 @@ contract('TrivialToken - ICO tests', (accounts) => {
             'TRVLTEST',
             Math.floor(Date.now() / 1000 + 600),
             600,
-            '0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5',
-            '0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0',
+            accounts[8],
+            accounts[9],
             200000,
             100000,
             700000
@@ -70,4 +70,31 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await contributeIco();
         await finishIco();
     })
+
+    it('cancel ICO no contributors', async () => {
+        await startIco();
+        await token.cancelIco();
+        assert.isOk(await throws(token.contributeInIco,
+            {from: accounts[0], value: 100000000000000000}
+        ), 'contributeInCancel - Should be thrown');
+        assert.equal(await token.currentState.call(), 5, 'Current state is different');
+        await token.killContract();
+        assert.isOk(await throws(token.name.call), 'Token name should not exist');
+    })
+
+    it('cancel ICO with contributors and refund them', async () => {
+        await startIco();
+        await contributeIco();
+        var balanceInIco = parseInt(await token.getBalance(accounts[0]));
+        await token.cancelIco();
+        assert.isAbove(parseInt(await token.getBalance(accounts[0])),
+            balanceInIco, 'Cancel ICO should return funds');
+        assert.isOk(await throws(token.contributeInIco,
+            {from: accounts[0], value: 100000000000000000}
+        ), 'contributeInCancel - Should be thrown');
+        assert.equal(await token.currentState.call(), 5, 'Current state is different');
+        await token.killContract();
+        assert.isOk(await throws(token.name.call), 'Token name should not exist');
+    })
+
 });
