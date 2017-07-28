@@ -49,6 +49,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     async function finishIco() {
         assert.isOk(await throws(token.finishIco), 'finishIco - Should be thrown');
         await token.setIcoEndTimePast();
+        await token.distributeTokens(4);
         await token.finishIco();
         assert.equal(await token.currentState.call(), 2, 'Should be IcoFinished');
         assert.isOk(await throws(

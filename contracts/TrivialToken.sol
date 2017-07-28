@@ -126,30 +126,6 @@ contract TrivialToken is ERC223Token, PullPayment {
         IcoContributed(msg.sender, msg.value, amountRaised);
     }
 
-    function finishIco()
-    onlyInState(State.IcoStarted)
-    onlyAfter(icoEndTime) {
-        if (amountRaised == 0) {
-            currentState = State.IcoCancelled;
-            return;
-        }
-
-        // all contributors must have received their tokens to finish ICO
-        require(nextContributorIndexToBeGivenTokens >= contributors.length);
-
-        tokenHolders = contributors;
-        balances[artist] = SafeMath.add(balances[artist], tokensForArtist);
-        balances[trivial] = SafeMath.add(balances[trivial], tokensForTrivial);
-        uint256 leftovers = SafeMath.sub(tokensForIco, tokensDistributedToContributors);
-        balances[artist] = SafeMath.add(balances[artist], leftovers);
-
-        if (!artist.send(this.balance)) {
-            asyncSend(artist, this.balance);
-        }
-        currentState = State.IcoFinished;
-        IcoFinished(amountRaised);
-    }
-
     function distributeTokens(uint256 contributorsNumber)
     onlyInState(State.IcoStarted)
     onlyAfter(icoEndTime) {
@@ -161,7 +137,31 @@ contract TrivialToken is ERC223Token, PullPayment {
             );
             balances[currentContributor] = tokensForContributor;
             tokensDistributedToContributors = SafeMath.add(tokensDistributedToContributors, tokensForContributor);
+            tokenHolders.push(currentContributor);
         }
+    }
+
+    function finishIco()
+    onlyInState(State.IcoStarted)
+    onlyAfter(icoEndTime) {
+        if (amountRaised == 0) {
+            currentState = State.IcoCancelled;
+            return;
+        }
+
+        // all contributors must have received their tokens to finish ICO
+        require(nextContributorIndexToBeGivenTokens >= contributors.length);
+
+        balances[artist] = SafeMath.add(balances[artist], tokensForArtist);
+        balances[trivial] = SafeMath.add(balances[trivial], tokensForTrivial);
+        uint256 leftovers = SafeMath.sub(tokensForIco, tokensDistributedToContributors);
+        balances[artist] = SafeMath.add(balances[artist], leftovers);
+
+        if (!artist.send(this.balance)) {
+            asyncSend(artist, this.balance);
+        }
+        currentState = State.IcoFinished;
+        IcoFinished(amountRaised);
     }
 
     function checkContribution(address contributor) constant returns (uint) {
