@@ -52,7 +52,6 @@ contract TrivialToken is ERC223Token, PullPayment {
     //Token contributors and holders
     mapping(address => uint) public contributions;
     address[] public contributors;
-    address[] public tokenHolders;
 
     //Modififers
     modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
@@ -137,7 +136,6 @@ contract TrivialToken is ERC223Token, PullPayment {
             );
             balances[currentContributor] = tokensForContributor;
             tokensDistributedToContributors = SafeMath.add(tokensDistributedToContributors, tokensForContributor);
-            tokenHolders.push(currentContributor);
         }
     }
 
@@ -301,13 +299,11 @@ contract TrivialToken is ERC223Token, PullPayment {
         );
     }
 
-    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool success) {
-        success = ERC223Token.transfer(_to, _value, _data);
-        if (success) { tokenHolders.push(_to); }
-        return success;
+    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool) {
+        return ERC223Token.transfer(_to, _value, _data);
     }
 
-    function transfer(address _to, uint _value) returns (bool success) {
+    function transfer(address _to, uint _value) returns (bool) {
         // onlyInState(IcoFinished) check is contained in a call below
         bytes memory empty;
         return transfer(_to, _value, empty);
