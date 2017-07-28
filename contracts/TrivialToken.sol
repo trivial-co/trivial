@@ -32,6 +32,8 @@ contract TrivialToken is ERC223Token, PullPayment {
     address public highestBidder;
     uint256 public highestBid;
     bytes32 public auctionWinnerMessageHash;
+    uint256 public nextContributorIndexToBeGivenTokens;
+    uint256 public tokensDistributedToContributors;
 
     //Events
     event IcoStarted(uint256 icoEndTime);
@@ -124,6 +126,21 @@ contract TrivialToken is ERC223Token, PullPayment {
         IcoContributed(msg.sender, msg.value, amountRaised);
     }
 
+    function distributeTokens(uint256 contributorsNumber)
+    onlyInState(State.IcoStarted)
+    onlyAfter(icoEndTime) {
+        for (uint256 i = 0; i < contributorsNumber && nextContributorIndexToBeGivenTokens < contributors.length; ++i) {
+            address currentContributor = contributors[nextContributorIndexToBeGivenTokens++];
+            uint256 tokensForContributor = SafeMath.div(
+                SafeMath.mul(tokensForIco, contributions[currentContributor]),
+                amountRaised  // amountRaised can't be 0, ICO is cancelled then
+            );
+            balances[currentContributor] = tokensForContributor;
+            tokensDistributedToContributors = SafeMath.add(tokensDistributedToContributors, tokensForContributor);
+            tokenHolders.push(currentContributor);
+        }
+    }
+
     function finishIco()
     onlyInState(State.IcoStarted)
     onlyAfter(icoEndTime) {
@@ -131,37 +148,20 @@ contract TrivialToken is ERC223Token, PullPayment {
             currentState = State.IcoCancelled;
             return;
         }
-        tokenHolders = contributors;
 
-        currentState = State.IcoFinished;
-        IcoFinished(amountRaised);
+        // all contributors must have received their tokens to finish ICO
+        require(nextContributorIndexToBeGivenTokens >= contributors.length);
 
-        distributeTokens();
+        balances[artist] = SafeMath.add(balances[artist], tokensForArtist);
+        balances[trivial] = SafeMath.add(balances[trivial], tokensForTrivial);
+        uint256 leftovers = SafeMath.sub(tokensForIco, tokensDistributedToContributors);
+        balances[artist] = SafeMath.add(balances[artist], leftovers);
+
         if (!artist.send(this.balance)) {
             asyncSend(artist, this.balance);
         }
-    }
-
-    function distributeTokens() private
-    onlyInState(State.IcoFinished) {
-        balances[artist] = SafeMath.add(balances[artist], tokensForArtist);
-        balances[trivial] = SafeMath.add(balances[trivial], tokensForTrivial);
-
-        uint256 tokensForContributors = 0;
-        for (uint256 i = 0; i < contributors.length; i++) {
-            address currentContributor = contributors[i];
-            uint256 tokensForContributor = SafeMath.div(
-                SafeMath.mul(tokensForIco, contributions[currentContributor]),
-                amountRaised  // amountRaised can't be 0, ICO is cancelled then
-            );
-            balances[currentContributor] = SafeMath.add(balances[currentContributor], tokensForContributor);
-            tokensForContributors = SafeMath.add(tokensForContributors, tokensForContributor);
-        }
-
-        uint256 leftovers = SafeMath.sub(tokensForIco, tokensForContributors);
-        if (leftovers > 0) {
-            balances[artist] = SafeMath.add(balances[artist], leftovers);
-        }
+        currentState = State.IcoFinished;
+        IcoFinished(amountRaised);
     }
 
     function checkContribution(address contributor) constant returns (uint) {
@@ -264,15 +264,12 @@ contract TrivialToken is ERC223Token, PullPayment {
     onlyTrivial() {
         currentState = State.IcoCancelled;
         IcoCancelled();
+    }
 
-        for (uint256 i = 0; i < contributors.length; i++) {
-            address contributor = contributors[i];
-            uint256 contribution = contributions[contributor];
-            contributions[contributor] = 0;
-            if (!contributor.send(contribution)) {
-                asyncSend(contributor, contribution);
-            }
-        }
+    function claimIcoContribution(address contributor) onlyInState(State.IcoCancelled) {
+        uint256 contribution = contributions[contributor];
+        contributions[contributor] = 0;
+        contributor.transfer(contribution);
     }
 
     function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
