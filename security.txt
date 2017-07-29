@@ -1,0 +1,31 @@
+https://github.com/ConsenSys/smart-contract-best-practices
+
+Known attacks:
+Race Conditions
+Reentrancy
+Cross-function Race Conditions
+Transaction-Ordering Dependence (TOD) / Front Loading
+Timestamp Dependence
+Integer Overflow and Underflow
+DoS with (Unexpected) Throw
+DoS with Block Gas Limit
+Security patterns:
+Upgrading Broken Contracts
+Circuit Breakers (Pause contract functionality)
+Speed Bumps (Delay contract actions)
+Rate Limiting
+Assert Guards
+Contract Rollout
+Tools:
+Security analysis: https://github.com/melonproject/oyente
+Code coverage: https://github.com/sc-forks/solidity-coverage
+Control flow: https://github.com/raineorshine/solgraph
+Bug lists:
+https://blog.ethereum.org/category/security/
+https://bounty.ethereum.org/ 
+
+General guidelines:
+Circuit Breaker - Pause the contract when things are going wrong
+Rate Limiting - Manage the amount of money at risk
+Killable, Upgradeable or Modifiable pattern - Have an effective upgrade path for bugfixes and improvements
+Avoid Duplication - https://github.com/ConsenSys/live-libs and https://github.com/OpenZeppelin/zeppelin-solidity
