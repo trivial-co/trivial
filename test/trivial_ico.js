@@ -88,6 +88,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await contributeIco();
         var balanceInIco = parseInt(await token.getBalance(accounts[0]));
         await token.cancelIco();
+        await token.claimIcoContribution(accounts[0]);
         assert.isAbove(parseInt(await token.getBalance(accounts[0])),
             balanceInIco, 'Cancel ICO should return funds');
         assert.isOk(await throws(token.contributeInIco,
