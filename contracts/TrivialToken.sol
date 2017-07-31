@@ -155,26 +155,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         uint256 leftovers = SafeMath.sub(tokensForIco, tokensDistributedToContributors);
         balances[artist] = SafeMath.add(balances[artist], leftovers);
 
-<<<<<<< HEAD
-        uint256 tokensForContributors = 0;
-        for (uint256 i = 0; i < contributors.length; i++) {
-            address currentContributor = contributors[i];
-            uint256 tokensForContributor = SafeMath.div(
-                SafeMath.mul(tokensForIco, contributions[currentContributor]),
-                amountRaised  // amountRaised can't be 0, ICO is cancelled then
-            );
-            balances[currentContributor] = SafeMath.add(balances[currentContributor], tokensForContributor);
-            tokensForContributors = SafeMath.add(tokensForContributors, tokensForContributor);
-            balances[trivial] += 1;
-        }
-
-        uint256 leftovers = SafeMath.sub(tokensForIco, tokensForContributors);
-        if (leftovers > 0) {
-            balances[artist] = SafeMath.add(balances[artist], leftovers);
-=======
         if (!artist.send(this.balance)) {
             asyncSend(artist, this.balance);
->>>>>>> master
         }
         currentState = State.IcoFinished;
         IcoFinished(amountRaised);
