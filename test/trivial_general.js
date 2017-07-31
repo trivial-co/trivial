@@ -1,22 +1,31 @@
-var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
-
+var trivial_builder = require('./trivial_builder.js');
+var TrivialToken = artifacts.require("TrivialToken.sol");
+var State = {
+    "Created": 0,
+    "IcoStarted": 1,
+    "IcoCancelled": 5
+};
 
 contract('TrivialToken - General tests', (accounts) => {
 
     var token;
+    var trivialContractBuilder;
+    var trivialAddress = accounts[0];
+    var artistAddress = accounts[1];
 
     beforeEach(async () => {
-        token = await DevelopmentToken.new(
+        trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
             Math.floor(Date.now() / 1000 + 600),
             600,
-            accounts[8],
-            accounts[9],
+            artistAddress,
+            trivialAddress,
             200000,
             100000,
             700000
         );
+        trivialContractBuilder = new trivial_builder.TrivialContractBuilder(trivialContract, trivialAddress);
     })
 
     async function throws(fn, ...args) {
@@ -27,17 +36,13 @@ contract('TrivialToken - General tests', (accounts) => {
     }
 
     it('should create TrivialToken', async () => {
-        assert.equal(await token.name.call(), 'TrivialTest', 'Token name is not Trivial');
-        assert.equal(await token.currentState.call(), 0, 'Current state is different');
+        assert.equal(await trivialContract.name(), 'TrivialTest', 'Token name is not Trivial');
+        assert.equal(await trivialContract.currentState(), State.Created, 'Current state is different');
     })
 
-    it('should test selfdestruct', async () => {
-        assert.equal(await token.name.call(), 'TrivialTest', 'Token name is not Trivial');
-        await token.becomeTrivial();
-        await token.setStateIcoCancelled();
-        assert.equal(await token.currentState.call(), 5, 'Current state is different');
-        await token.killContract();
-        assert.isOk(await throws(token.name.call), 'Token name should not exist');
+    it('should be able to selfdestruct after cancelled ICO', async () => {
+        trivialContract = (await trivialContractBuilder.icoCancelled()).get();
+        await trivialContract.killContract();
     })
 
 });
