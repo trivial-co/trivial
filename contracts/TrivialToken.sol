@@ -12,7 +12,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 constant MIN_BID_PERCENTAGE = 5;
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
-    uint256 constant CLEANUP_DELAY = 15778463; // 6 months
+    uint256 constant CLEANUP_DELAY = 180 days;
 
     //Private accounts
     address artist;
