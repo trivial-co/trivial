@@ -75,6 +75,8 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('cancel ICO no contributors', async () => {
         await startIco();
         await token.cancelIco();
+        assert.isOk(await throws(token.claimIcoContribution, accounts[0]
+        ), 'claimIcoContribution - Should be thrown');
         assert.isOk(await throws(token.contributeInIco,
             {from: accounts[0], value: 100000000000000000}
         ), 'contributeInCancel - Should be thrown');
