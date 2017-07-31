@@ -25,6 +25,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setStateIcoFinished() { currentState = State.IcoFinished; }
     function setStateAuctionStarted() { currentState = State.AuctionStarted; }
     function setStateAuctionFinished() { currentState = State.AuctionFinished; }
+    function setStateIcoCancelled() { currentState = State.IcoCancelled; }
 
     function setTrivial(address sender) { trivial = sender; }
     function becomeTrivial() { trivial = msg.sender; }
@@ -44,5 +45,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setAuctionEndTimePast() { auctionEndTime = now - 1 minutes; }
 
     function contributorsCount() constant returns (uint256) { return contributors.length; }
-    function getBalance(address account) constant returns (uint) { return account.balance; }
+    function getBalance(address account) constant returns (uint256) { return account.balance; }
+    function getTokens(address account) constant returns (uint256) { return balances[account]; }
+    function setTokens(address account, uint256 amount) { balances[account] = amount; }
 }
