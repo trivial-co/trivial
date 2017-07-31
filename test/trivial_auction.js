@@ -28,6 +28,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
         await token.contributeInIco({from: accounts[3], value: 200000000000000000});
         await token.contributeInIco({from: me, value: 300000000000000000});
         await token.setIcoEndTimePast();
+        await token.distributeTokens(5);
         await token.finishIco();
         assert.equal(await token.currentState.call(), 2, 'Should be two');
     })
