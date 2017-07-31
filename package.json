@@ -15,7 +15,9 @@
     "premigrate-public": "npm run clean",
     "migrate-public": "truffle migrate --network ropsten",
     "pretest": "npm run clean",
-    "test": "truffle test --network development"
+    "test": "truffle test --network development",
+    "pretest-coverage": "npm run clean",
+    "test-coverage": "solidity-coverage"
   },
   "repository": {
     "type": "git",
@@ -33,6 +35,7 @@
     "zeppelin-solidity": "^1.2.0"
   },
   "devDependencies": {
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "solidity-coverage": "^0.2.1"
   }
 }
