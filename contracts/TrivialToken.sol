@@ -12,6 +12,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 constant MIN_BID_PERCENTAGE = 5;
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
+    uint256 constant CLEANUP_DELAY = 15778463; // 6 months
 
     //Private accounts
     address artist;
@@ -280,8 +281,11 @@ contract TrivialToken is ERC223Token, PullPayment {
     function killContract()
     onlyTrivial() {
         require(
-            currentState == State.AuctionFinished ||
-            currentState == State.IcoCancelled
+            (
+                currentState == State.AuctionFinished &&
+                now > SafeMath.add(auctionEndTime, CLEANUP_DELAY) // Delay in correct state
+            ) ||
+            currentState == State.IcoCancelled // No delay in cancelled state
         );
         selfdestruct(trivial);
     }
