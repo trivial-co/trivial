@@ -8,15 +8,15 @@ contract TrivialToken is ERC223Token, PullPayment {
 
     //Constants
     uint8 constant DECIMALS = 0;
-    uint256 constant MIN_ETH_AMOUNT = 0.01 ether;
-    uint256 constant MIN_BID_PERCENTAGE = 5;
+    uint256 constant MIN_ETH_AMOUNT = 0.005 ether;
+    uint256 constant MIN_BID_PERCENTAGE = 10;
     uint256 constant TOTAL_SUPPLY = 1000000;
-    uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 5;
+    uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
 
-    //Private accounts
-    address artist;
-    address trivial;
+    //Accounts
+    address public artist;
+    address public trivial;
 
     //Time information
     uint256 public icoEndTime;
@@ -258,7 +258,11 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         General methods
     */
-    function cancelIco()
+
+    // Cancel ICO will be redesigned to prevent
+    // risk of user funds overtaken
+
+    /*function cancelIco()
     onlyInState(State.IcoStarted)
     onlyTrivial() {
         currentState = State.IcoCancelled;
@@ -270,7 +274,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         require(contribution > 0);
         contributions[contributor] = 0;
         contributor.transfer(contribution);
-    }
+    }*/
 
     function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
     onlyAuctionWinner() {
