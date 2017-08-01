@@ -1,6 +1,6 @@
 var TrivialToken = artifacts.require("./TrivialToken.sol");
 
-module.exports = function(deployer) {
+module.exports = function(deployer, network) {
     if (network != "production") {
         deployer.deploy(
             TrivialToken,
