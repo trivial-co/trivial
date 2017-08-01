@@ -258,12 +258,16 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         General methods
     */
-    function cancelIco()
+
+    // Cancel ICO will be redesigned to prevent
+    // risk of user funds overtaken
+    
+    /*function cancelIco()
     onlyInState(State.IcoStarted)
     onlyTrivial() {
         currentState = State.IcoCancelled;
         IcoCancelled();
-    }
+    }*/
 
     function claimIcoContribution(address contributor) onlyInState(State.IcoCancelled) {
         uint256 contribution = contributions[contributor];
