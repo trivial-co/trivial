@@ -4,14 +4,13 @@ var BigNumber = require('bignumber.js')
 
 
 function goForwardInTime(seconds) {
-    web3.currentProvider.sendAsync({
+    web3.currentProvider.send({
       jsonrpc: "2.0",
       method: "evm_increaseTime",
       params: [seconds],
       id: new Date().getTime()
-  }, () => {});
+  });
 }
-
 
 contract('TrivialToken - ICO tests', (accounts) => {
 
@@ -77,11 +76,11 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await trivialContract.startIco({from: trivialAddress});
     })
 
-    it('Artist cannot start auction', async () => {
+    it('Artist cannot start ico', async () => {
         assert.isOk(await throws(trivialContract.startIco, {from: artistAddress}));
     })
 
-    it('Other user cannot start auction', async () => {
+    it('Other user cannot start ico', async () => {
         assert.isOk(await throws(trivialContract.startIco, {from: otherUserAddress}));
     })
 
@@ -90,6 +89,13 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(0.01, 'ether')}));
         var minProperAmount = (new BigNumber(web3.toWei(0.01, 'ether'))).add(1).toString()
         await trivialContract.contributeInIco({value: minProperAmount});
+    })
+
+    it('Go IcoCancelled state if nobody contributed and ICO is finished', async () => {
+        trivialContract = (await trivialContractBuilder.icoStarted()).get();
+        goForwardInTime(601);
+        trivialContract.finishIco();
+        assert.equal(await trivialContract.currentState.call(), 5, 'Should be IcoCancelled');
     })
 
     it('check Finish ICO', async () => {

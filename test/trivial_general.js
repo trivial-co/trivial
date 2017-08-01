@@ -39,10 +39,4 @@ contract('TrivialToken - General tests', (accounts) => {
         assert.equal(await trivialContract.name(), 'TrivialTest', 'Token name is not Trivial');
         assert.equal(await trivialContract.currentState(), State.Created, 'Current state is different');
     })
-
-    it('should be able to selfdestruct after cancelled ICO', async () => {
-        trivialContract = (await trivialContractBuilder.icoCancelled()).get();
-        await trivialContract.killContract();
-    })
-
 });
