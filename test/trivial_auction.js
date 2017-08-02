@@ -1,3 +1,4 @@
+var common = require('./trivial_tests_common.js');
 var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
 
 
@@ -9,7 +10,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
         token = await DevelopmentToken.new(
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(Date.now() / 1000 + 600),
+            common.now() + 600,
             600,
             accounts[8],
             accounts[9],
@@ -42,9 +43,9 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     async function startAuction() {
         await token.startAuction();
-        assert.equal(await token.currentState.call(), 3, 'Should be AuctionStarted');
-        assert.isAbove(await token.auctionEndTime.call(),
-            Math.floor(Date.now() / 1000), 'Should be in future');
+        assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
+        assert.isAbove(await token.auctionEndTime(),
+            common.now(), 'Should be in future');
     }
 
     async function bidAuction() {
@@ -75,11 +76,11 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     async function finishAuction() {
         assert.isAbove(await token.auctionEndTime.call(),
-            Math.floor(Date.now() / 1000), 'Should be in future');
+            common.now(), 'Should be in future');
         assert.isOk(await throws(token.finishAuction), 'finishAuction - Should be thrown');
         await token.setAuctionEndTimePast();
         assert.isBelow(await token.auctionEndTime.call(),
-            Math.floor(Date.now() / 1000), 'Should be in past');
+            common.now(), 'Should be in past');
         await token.finishAuction();
         assert.equal(await token.currentState.call(), 4, 'Should be AuctionFinished');
         assert.isOk(await throws(
