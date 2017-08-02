@@ -21,10 +21,11 @@ contract('TrivialToken - ICO tests', (accounts) => {
     var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
+        var now = parseInt(web3.currentProvider.send({jsonrpc:"2.0", method: "eth_getBlockByNumber", params:["latest", false]})['result']['timestamp'])
         trivialContract = await DevelopmentToken.new(
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(Date.now() / 1000 + 600),
+            Math.floor(now + 600),
             600,
             artistAddress,
             trivialAddress,
@@ -84,10 +85,10 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.isOk(await throws(trivialContract.startIco, {from: otherUserAddress}));
     })
 
-    it('User must contribute amounts bigger than 0.01 ether ', async () => {
+    it('User must contribute amounts bigger than 0.005 ether ', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
-        assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(0.01, 'ether')}));
-        var minProperAmount = (new BigNumber(web3.toWei(0.01, 'ether'))).add(1).toString()
+        assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(0.005, 'ether')}));
+        var minProperAmount = (new BigNumber(web3.toWei(0.005, 'ether'))).add(1).toString()
         await trivialContract.contributeInIco({value: minProperAmount});
     })
 

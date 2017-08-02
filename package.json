@@ -32,7 +32,8 @@
   "dependencies": {
     "truffle": "^3.4.5",
     "truffle-hdwallet-provider": "0.0.3",
-    "zeppelin-solidity": "^1.2.0"
+    "zeppelin-solidity": "^1.2.0",
+    "bignumber.js": "latest"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
