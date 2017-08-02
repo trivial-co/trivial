@@ -319,6 +319,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     }
 
     function () payable {
-        revert();
+        if (currentState == State.IcoStarted) {
+            contributeInIco();
+        }
+        else if (currentState == State.AuctionStarted) {
+            bidInAuction();
+        }
+        else {
+            revert();
+        }
     }
 }
