@@ -68,9 +68,6 @@ contract TrivialToken is ERC223Token, PullPayment {
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
     modifier onlyArtist() { require(msg.sender == artist); _; }
-    modifier onlyKeyHolders() { require(balances[msg.sender] >= SafeMath.div(
-        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
-    }
     modifier onlyAuctionWinner() {
         require(currentState == State.AuctionFinished);
         require(msg.sender == highestBidder);
@@ -181,9 +178,17 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         Auction methods
     */
+    function canStartAuction() {
+        bool isArtist = msg.sender == artist;
+        bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
+        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
+        return isArtist || isKeyHolder;
+    }
+
     function startAuction()
-    onlyInState(State.IcoFinished)
-    onlyKeyHolders() {
+    onlyInState(State.IcoFinished) {
+        require(canStartAuction());
+
         // 100% tokens owner is the only key holder
         if (balances[msg.sender] == TOTAL_SUPPLY) {
             // no auction takes place,
