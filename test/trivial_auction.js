@@ -15,7 +15,8 @@ contract('TrivialToken - Auction tests', (accounts) => {
             accounts[9],
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
         me = await token.getSelf.call();
         assert.equal(await token.currentState.call(), 0, 'Should be zero');

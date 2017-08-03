@@ -178,7 +178,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         Auction methods
     */
-    function canStartAuction() {
+    function canStartAuction() returns (bool) {
         bool isArtist = msg.sender == artist;
         bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
         SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);

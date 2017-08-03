@@ -10,11 +10,13 @@ contract DevelopmentTrivialToken is TrivialToken {
         address _artist, address _trivial,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
-        uint256 _tokensForIco
+        uint256 _tokensForIco,
+        bytes32 _descriptionHash
     ) TrivialToken(
         _name, _symbol,
         _icoEndTime, _auctionDuration, _artist, _trivial,
-        _tokensForArtist, _tokensForTrivial, _tokensForIco
+        _tokensForArtist, _tokensForTrivial, _tokensForIco,
+        _descriptionHash
     ) {}
 
     /*

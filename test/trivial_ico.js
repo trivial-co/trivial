@@ -15,7 +15,8 @@ contract('TrivialToken - ICO tests', (accounts) => {
             accounts[9],
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
         me = await token.getSelf.call();
     })
@@ -72,33 +73,33 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await finishIco();
     })
 
-    it('cancel ICO no contributors', async () => {
-        await startIco();
-        await token.cancelIco();
-        assert.isOk(await throws(token.claimIcoContribution, accounts[0]
-        ), 'claimIcoContribution - Should be thrown');
-        assert.isOk(await throws(token.contributeInIco,
-            {from: accounts[0], value: 100000000000000000}
-        ), 'contributeInCancel - Should be thrown');
-        assert.equal(await token.currentState.call(), 5, 'Current state is different');
-        await token.killContract();
-        assert.isOk(await throws(token.name.call), 'Token name should not exist');
-    })
-
-    it('cancel ICO with contributors and refund them', async () => {
-        await startIco();
-        await contributeIco();
-        var balanceInIco = parseInt(await token.getBalance(accounts[0]));
-        await token.cancelIco();
-        await token.claimIcoContribution(accounts[0]);
-        assert.isAbove(parseInt(await token.getBalance(accounts[0])),
-            balanceInIco, 'Cancel ICO should return funds');
-        assert.isOk(await throws(token.contributeInIco,
-            {from: accounts[0], value: 100000000000000000}
-        ), 'contributeInCancel - Should be thrown');
-        assert.equal(await token.currentState.call(), 5, 'Current state is different');
-        await token.killContract();
-        assert.isOk(await throws(token.name.call), 'Token name should not exist');
-    })
+    // it('cancel ICO no contributors', async () => {
+    //     await startIco();
+    //     await token.cancelIco();
+    //     assert.isOk(await throws(token.claimIcoContribution, accounts[0]
+    //     ), 'claimIcoContribution - Should be thrown');
+    //     assert.isOk(await throws(token.contributeInIco,
+    //         {from: accounts[0], value: 100000000000000000}
+    //     ), 'contributeInCancel - Should be thrown');
+    //     assert.equal(await token.currentState.call(), 5, 'Current state is different');
+    //     await token.killContract();
+    //     assert.isOk(await throws(token.name.call), 'Token name should not exist');
+    // })
+    //
+    // it('cancel ICO with contributors and refund them', async () => {
+    //     await startIco();
+    //     await contributeIco();
+    //     var balanceInIco = parseInt(await token.getBalance(accounts[0]));
+    //     await token.cancelIco();
+    //     await token.claimIcoContribution(accounts[0]);
+    //     assert.isAbove(parseInt(await token.getBalance(accounts[0])),
+    //         balanceInIco, 'Cancel ICO should return funds');
+    //     assert.isOk(await throws(token.contributeInIco,
+    //         {from: accounts[0], value: 100000000000000000}
+    //     ), 'contributeInCancel - Should be thrown');
+    //     assert.equal(await token.currentState.call(), 5, 'Current state is different');
+    //     await token.killContract();
+    //     assert.isOk(await throws(token.name.call), 'Token name should not exist');
+    // })
 
 });

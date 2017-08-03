@@ -15,7 +15,8 @@ contract('TrivialToken - General tests', (accounts) => {
             accounts[9],
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     })
 

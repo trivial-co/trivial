@@ -12,7 +12,8 @@ module.exports = function(deployer, network) {
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     } else {
         // production
@@ -27,7 +28,8 @@ module.exports = function(deployer, network) {
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
             350000,
             50000,
-            600000
+            600000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     }
 
