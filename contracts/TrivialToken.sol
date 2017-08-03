@@ -60,8 +60,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
     modifier onlyKeyHolders() {
-        bool aristOrTrivial = msg.sender == artist || msg.sender == trivial;
-        if (!aristOrTrivial) {
+        if (msg.sender != artist) {
             require(balances[msg.sender] >= SafeMath.div(
             SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100));
         } _;
