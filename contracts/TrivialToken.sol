@@ -28,6 +28,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 public tokensForTrivial;
     uint256 public tokensForIco;
 
+    struct DescriptionHash {
+        bytes32 descriptionHash;
+        uint256 timestamp;
+    }
+
+    DescriptionHash public descriptionHash;
+    DescriptionHash[] public descriptionHashHistory;
+
     //ICO and auction results
     uint256 public amountRaised;
     address public highestBidder;
@@ -59,6 +67,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
+    modifier onlyArtist() { require(msg.sender == artist); _; }
     modifier onlyAuctionWinner() {
         require(currentState == State.AuctionFinished);
         require(msg.sender == highestBidder);
@@ -71,7 +80,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         address _artist, address _trivial,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
-        uint256 _tokensForIco
+        uint256 _tokensForIco,
+        bytes32 _descriptionHash
     ) {
         require(now < _icoEndTime);
         require(
@@ -96,6 +106,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
+        descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
     }
 
@@ -280,6 +291,12 @@ contract TrivialToken is ERC223Token, PullPayment {
         contributions[contributor] = 0;
         contributor.transfer(contribution);
     }*/
+
+    function setDescriptionHash(bytes32 _descriptionHash)
+    onlyArtist() {
+        descriptionHashHistory.push(descriptionHash);
+        descriptionHash = DescriptionHash(_descriptionHash, now);
+    }
 
     function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
     onlyAuctionWinner() {
