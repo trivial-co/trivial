@@ -28,8 +28,13 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 public tokensForTrivial;
     uint256 public tokensForIco;
 
-    bytes32 public descriptionHash;
-    bytes32[] public descriptionHashHistory;
+    struct DescriptionHash {
+        bytes32 descriptionHash;
+        uint256 timestamp;
+    }
+
+    DescriptionHash public descriptionHash;
+    DescriptionHash[] public descriptionHashHistory;
 
     //ICO and auction results
     uint256 public amountRaised;
@@ -104,7 +109,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
-        descriptionHash = _descriptionHash;
+        descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
     }
 
@@ -285,7 +290,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     function setDescriptionHash(bytes32 _descriptionHash)
     onlyArtist() {
         descriptionHashHistory.push(descriptionHash);
-        descriptionHash = _descriptionHash;
+        descriptionHash = DescriptionHash(_descriptionHash, now);
     }
 
     function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
