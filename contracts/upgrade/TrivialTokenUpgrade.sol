@@ -34,7 +34,7 @@ contract TrivialTokenUpgrade is TrivialToken {
 
         // Upgrades contract only though ICO
         /*require(isStarted);*/
-        upgradeStartIco();
+        currentState = State.IcoStarted;
         upgradeContributeInIco(originContract, _contributorsCount);
 
         // Synchronize rest
@@ -52,24 +52,15 @@ contract TrivialTokenUpgrade is TrivialToken {
         require(amountRaised == originContract.amountRaised());*/
     }
 
-    function upgradeStartIco() private {
-        currentState = State.IcoStarted;
-        IcoStarted(icoEndTime);
-    }
-
     function upgradeContributeInIco(V102 originContract, uint256 _contributorsCount) private {
         // ICO contributors
-        for (uint256 i; i < _contributorsCount; i++) {
+        for (uint256 i = 0; i < 7; i++) {
             address contributor = originContract.contributors(i);
             uint256 contribution = originContract.contributions(contributor);
-
-            if (contributions[msg.sender] == 0) {
-                contributors.push(msg.sender);
-            }
+            contributors.push(contributor);
 
             contributions[contributor] = SafeMath.add(contributions[contributor], contribution);
             amountRaised = SafeMath.add(amountRaised, contribution);
-            IcoContributed(contributor, contribution, amountRaised);
         }
     }
 }

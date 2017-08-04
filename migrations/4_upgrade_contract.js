@@ -17,7 +17,7 @@ module.exports = function(deployer, network) {
             'TrivialDev',
             'TRT',
             'ff2f38bf7d94e9257340c3be0e82726ce6f51cc1bdf3593bcffcbf5e344a484b', //hash of item description
-            7 //contributorsCount
-        );
+            7, //contributorsCount
+{value: web3.toWei(0.25, 'ether')});
     }
 };
