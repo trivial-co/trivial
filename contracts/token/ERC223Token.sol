@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "zeppelin-solidity/contracts/token/BasicToken.sol";
+import "zeppelin-solidity/contracts/token/StandardToken.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "../interface/ERC223TokenInterface.sol";
 import "../interface/ERC223ReceiverInterface.sol";
@@ -9,7 +9,7 @@ import "../interface/ERC223ReceiverInterface.sol";
  * @based on: https://github.com/OpenZeppelin/zeppelin-solidity/pull/266
  */
 
-contract ERC223Token is BasicToken, ERC223TokenInterface {
+contract ERC223Token is StandardToken, ERC223TokenInterface {
     string public name;
     string public symbol;
     uint8 public decimals;
