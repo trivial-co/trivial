@@ -330,7 +330,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         );
     }
 
-    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool) {
+    function transfer(address _to, uint _value, bytes _data)
+    onlyInState(State.IcoFinished) returns (bool) {
         return ERC223Token.transfer(_to, _value, _data);
     }
 
@@ -338,6 +339,11 @@ contract TrivialToken is ERC223Token, PullPayment {
         // onlyInState(IcoFinished) check is contained in a call below
         bytes memory empty;
         return transfer(_to, _value, empty);
+    }
+
+    function transferFrom(address _from, address _to, uint256 _value)
+    onlyInState(State.IcoFinished) returns (bool) {
+        return ERC223Token.transferFrom(_from, _to, _value);
     }
 
     function () payable {
