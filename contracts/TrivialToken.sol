@@ -3,9 +3,9 @@ pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/token/StandardToken.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
-import "./interface/TrivialTokenInterface.sol";
+import "./interface/v102/V102.sol";
 
-contract TrivialToken is TrivialTokenInterface, StandardToken, PullPayment {
+contract TrivialToken is V102, StandardToken, PullPayment {
     //Constants
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.005 ether;
@@ -13,6 +13,13 @@ contract TrivialToken is TrivialTokenInterface, StandardToken, PullPayment {
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
+
+    struct DescriptionHash {
+        bytes32 descriptionHash;
+        uint256 timestamp;
+    }
+    DescriptionHash public descriptionHash;
+    DescriptionHash[] public descriptionHashHistory;
 
     //Modififers
     modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
