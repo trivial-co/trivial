@@ -12,12 +12,12 @@ contract DevelopmentTrivialToken is TrivialToken {
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
         bytes32 _descriptionHash
-    ) TrivialToken(
+    ) /*TrivialToken(
         _name, _symbol,
         _icoEndTime, _auctionDuration, _artist, _trivial,
         _tokensForArtist, _tokensForTrivial, _tokensForIco,
         _descriptionHash
-    ) {}
+    )*/ {}
 
     /*
         Development
@@ -46,7 +46,6 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setAuctionEndTimeOneMinute() { auctionEndTime = now + 1 minutes; }
     function setAuctionEndTimePast() { auctionEndTime = now - 1 minutes; }
 
-    function contributorsCount() constant returns (uint256) { return contributors.length; }
     function getBalance(address account) constant returns (uint256) { return account.balance; }
     function getTokens(address account) constant returns (uint256) { return balances[account]; }
     function setTokens(address account, uint256 amount) { balances[account] = amount; }
