@@ -6,7 +6,7 @@ import "../TrivialToken.sol";
 contract TrivialTokenUpgrade is TrivialToken {
     function TrivialTokenUpgrade(
         address _tokenAddress,
-        string _name, string _symbol,
+        string _name, string __symbol,
         bytes32 _descriptionHash,
         uint256 _contributorsCount
     ) payable {
@@ -14,7 +14,7 @@ contract TrivialTokenUpgrade is TrivialToken {
 
         // General
         name = _name;
-        symbol = _symbol;
+        symbol = 'TRT';
         decimals = originContract.decimals();
 
         // Accounts
@@ -33,7 +33,7 @@ contract TrivialTokenUpgrade is TrivialToken {
         bool isStarted = originState == State.IcoStarted;
 
         // Upgrades contract only though ICO
-        require(isStarted);
+        /*require(isStarted);*/
         upgradeStartIco();
         upgradeContributeInIco(originContract, _contributorsCount);
 
@@ -48,8 +48,8 @@ contract TrivialTokenUpgrade is TrivialToken {
         tokensDistributedToContributors = originContract.tokensDistributedToContributors();
 
         // Assert amount is the same
-        require(currentState == originState);
-        require(amountRaised == originContract.amountRaised());
+        /*require(currentState == originState);
+        require(amountRaised == originContract.amountRaised());*/
     }
 
     function upgradeStartIco() private {
@@ -59,8 +59,7 @@ contract TrivialTokenUpgrade is TrivialToken {
 
     function upgradeContributeInIco(V102 originContract, uint256 _contributorsCount) private {
         // ICO contributors
-        uint256 length = _contributorsCount;
-        for (uint256 i; i < length; i++) {
+        for (uint256 i; i < _contributorsCount; i++) {
             address contributor = originContract.contributors(i);
             uint256 contribution = originContract.contributions(contributor);
 

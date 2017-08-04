@@ -12,12 +12,12 @@ contract DevelopmentTrivialToken is TrivialToken {
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
         bytes32 _descriptionHash
-    ) TrivialToken(
+    ) /*TrivialToken(
         _name, _symbol,
         _icoEndTime, _auctionDuration, _artist, _trivial,
         _tokensForArtist, _tokensForTrivial, _tokensForIco,
         _descriptionHash
-    ) {}
+    )*/ {}
 
     /*
         Development

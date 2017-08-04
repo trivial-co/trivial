@@ -33,7 +33,7 @@ contract TrivialToken is V102, StandardToken, PullPayment {
         _;
     }
 
-    function TrivialToken(
+    /*function TrivialToken(
         string _name, string _symbol,
         uint256 _icoEndTime, uint256 _auctionDuration,
         address _artist, address _trivial,
@@ -67,7 +67,7 @@ contract TrivialToken is V102, StandardToken, PullPayment {
 
         descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
-    }
+    }*/
 
     /*
         ICO methods
