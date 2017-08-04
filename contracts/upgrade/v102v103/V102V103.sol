@@ -40,7 +40,7 @@ contract V102V103 is TrivialToken {
 
         if (!isCreated) {
             upgradeStartIco();
-            upgradeContributeInIco(originContract);
+            upgradeContributeInIco(originContract, _contributorsCount);
         }
         // Synchronize time if ICO has ended
         icoEndTime = originContract.icoEndTime();
@@ -79,7 +79,7 @@ contract V102V103 is TrivialToken {
                 contributors.push(msg.sender);
             }
 
-            contributions[contributor] = SafeMath.add(contributor, contribution);
+            contributions[contributor] = SafeMath.add(contributions[contributor], contribution);
             amountRaised = SafeMath.add(amountRaised, contribution);
             IcoContributed(contributor, contribution, amountRaised);
         }
