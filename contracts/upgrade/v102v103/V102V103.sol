@@ -31,25 +31,15 @@ contract V102V103 is TrivialToken {
         descriptionHash = DescriptionHash(_descriptionHash, now);
 
         State originState = originContract.currentState();
-        bool isCreated = originState == State.Created;
         bool isStarted = originState == State.IcoStarted;
-        bool isFinished = originState == State.IcoFinished;
 
         // Upgrades contract only though ICO
-        require(isCreated || isStarted || isFinished);
-
-        if (!isCreated) {
-            upgradeStartIco();
-            upgradeContributeInIco(originContract, _contributorsCount);
-        }
-        // Synchronize time if ICO has ended
-        icoEndTime = originContract.icoEndTime();
-        if (!isCreated && !isStarted) {
-            distributeTokens(_contributorsCount);
-            finishIco();
-        }
+        require(isStarted);
+        upgradeStartIco();
+        upgradeContributeInIco(originContract, _contributorsCount);
 
         // Synchronize rest
+        icoEndTime = originContract.icoEndTime();
         auctionDuration = originContract.auctionDuration();
         auctionEndTime = originContract.auctionEndTime();
         highestBidder = originContract.highestBidder();
