@@ -1,11 +1,10 @@
 pragma solidity ^0.4.11;
 
+import "zeppelin-solidity/contracts/token/StandardToken.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
-import "./token/ERC223Token.sol";
 
-contract TrivialToken is ERC223Token, PullPayment {
-
+contract TrivialToken is StandardToken, PullPayment {
     //Constants
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.005 ether;
@@ -13,6 +12,12 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
+
+    //Basic
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
 
     //Accounts
     address public artist;
@@ -27,14 +32,6 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 public tokensForArtist;
     uint256 public tokensForTrivial;
     uint256 public tokensForIco;
-
-    struct DescriptionHash {
-        bytes32 descriptionHash;
-        uint256 timestamp;
-    }
-
-    DescriptionHash public descriptionHash;
-    DescriptionHash[] public descriptionHashHistory;
 
     //ICO and auction results
     uint256 public amountRaised;
@@ -57,6 +54,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     //State
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
     State public currentState;
+
+    //Item description
+    struct DescriptionHash {
+        bytes32 descriptionHash;
+        uint256 timestamp;
+    }
+    DescriptionHash public descriptionHash;
+    DescriptionHash[] public descriptionHashHistory;
 
     //Token contributors and holders
     mapping(address => uint) public contributions;
@@ -275,6 +280,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         General methods
     */
 
+    function contributorsCount() constant returns (uint256) { return contributors.length; }
+
     // Cancel ICO will be redesigned to prevent
     // risk of user funds overtaken
 
@@ -330,14 +337,14 @@ contract TrivialToken is ERC223Token, PullPayment {
         );
     }
 
-    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool) {
-        return ERC223Token.transfer(_to, _value, _data);
+    function transfer(address _to, uint _value)
+    onlyInState(State.IcoFinished) returns (bool) {
+        return BasicToken.transfer(_to, _value);
     }
 
-    function transfer(address _to, uint _value) returns (bool) {
-        // onlyInState(IcoFinished) check is contained in a call below
-        bytes memory empty;
-        return transfer(_to, _value, empty);
+    function transferFrom(address _from, address _to, uint256 _value)
+    onlyInState(State.IcoFinished) returns (bool) {
+        return StandardToken.transferFrom(_from, _to, _value);
     }
 
     function () payable {

@@ -46,7 +46,6 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setAuctionEndTimeOneMinute() { auctionEndTime = now + 1 minutes; }
     function setAuctionEndTimePast() { auctionEndTime = now - 1 minutes; }
 
-    function contributorsCount() constant returns (uint256) { return contributors.length; }
     function getBalance(address account) constant returns (uint256) { return account.balance; }
     function getTokens(address account) constant returns (uint256) { return balances[account]; }
     function setTokens(address account, uint256 amount) { balances[account] = amount; }
