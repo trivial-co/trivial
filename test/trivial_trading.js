@@ -2,7 +2,7 @@ var common = require('./trivial_tests_common.js');
 var TrivialToken = artifacts.require("TrivialToken.sol");
 
 contract('TrivialToken - Exchange tests', (accounts) => {
-    var token, me;
+    var token;
     var trivialAddress = accounts[0];
     var artistAddress = accounts[1];
     var userAddress2 = accounts[2];
@@ -12,9 +12,9 @@ contract('TrivialToken - Exchange tests', (accounts) => {
     async function contributeInIco() {
         assert.equal(await token.balanceOf.call(userAddress4), 0,
             'Should be zero before contribution');
-        await token.contributeInIco({from: userAddress2, value: 200000000000000000});
-        await token.contributeInIco({from: userAddress3, value: 200000000000000000});
-        await token.contributeInIco({from: userAddress4, value: 300000000000000000});
+        await token.contributeInIco({from: userAddress2, value: web3.toWei(2, 'ether')});
+        await token.contributeInIco({from: userAddress3, value: web3.toWei(2, 'ether')});
+        await token.contributeInIco({from: userAddress4, value: web3.toWei(3, 'ether')});
         assert.equal(await token.balanceOf.call(userAddress4), 0,
             'Should be zero after contribution');
     }
@@ -39,8 +39,8 @@ contract('TrivialToken - Exchange tests', (accounts) => {
             700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
-        me = await token.getSelf.call();
         await token.startIco({from: trivialAddress});
+        assert.equal(await token.currentState.call(), 1, 'Should be one');
         await contributeInIco();
         common.goForwardInTime(601);
         await token.distributeTokens(3);

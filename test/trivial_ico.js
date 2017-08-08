@@ -66,13 +66,6 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.equal(await trivialContract.amountRaised(), web3.toWei(15, 'ether'));
     })
 
-    it('amountRaised is equal to sum of all contributions', async () => {
-        trivialContract = (await trivialContractBuilder.contributions({
-            [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5
-        })).get();
-        assert.equal(await trivialContract.amountRaised(), web3.toWei(15, 'ether'));
-    })
-
     it('Artist gets tokensForArtist tokens if he contributed nothing', async () => {
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 10
