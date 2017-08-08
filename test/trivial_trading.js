@@ -1,5 +1,5 @@
 var common = require('./trivial_tests_common.js');
-var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
+var TrivialToken = artifacts.require("TrivialToken.sol");
 
 contract('TrivialToken - Exchange tests', (accounts) => {
     var token, me;
@@ -11,7 +11,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
 
     async function contributeInIco() {
         assert.equal(await token.balanceOf.call(userAddress4), 0,
-            'Should be zero before contributiosn');
+            'Should be zero before contribution');
         await token.contributeInIco({from: userAddress2, value: 200000000000000000});
         await token.contributeInIco({from: userAddress3, value: 200000000000000000});
         await token.contributeInIco({from: userAddress4, value: 300000000000000000});
@@ -27,7 +27,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
     }
 
     beforeEach(async () => {
-        token = await DevelopmentToken.new(
+        token = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
             common.now() + 600,
@@ -40,8 +40,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
         me = await token.getSelf.call();
-        await token.becomeTrivial();
-        await token.startIco();
+        await token.startIco({from: trivialAddress});
         await contributeInIco();
         common.goForwardInTime(601);
         await token.distributeTokens(3);
