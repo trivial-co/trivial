@@ -88,7 +88,7 @@ contract TrivialToken is StandardToken, PullPayment {
         uint256 _tokensForIco,
         bytes32 _descriptionHash
     ) {
-        require(now < _icoEndTime);
+        //require(now < _icoEndTime);
         require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,

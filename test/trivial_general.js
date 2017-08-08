@@ -1,4 +1,4 @@
-var trivial_builder = require('./trivial_builder.js');
+var common = require('./trivial_tests_common.js');
 var TrivialToken = artifacts.require("TrivialToken.sol");
 var State = {
     "Created": 0,
@@ -17,7 +17,7 @@ contract('TrivialToken - General tests', (accounts) => {
         trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(Date.now() / 1000 + 600),
+            common.now() + 600,
             600,
             artistAddress,
             trivialAddress,
@@ -26,7 +26,7 @@ contract('TrivialToken - General tests', (accounts) => {
             700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
-        trivialContractBuilder = new trivial_builder.TrivialContractBuilder(trivialContract, trivialAddress);
+        trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivialAddress);
     })
 
     async function throws(fn, ...args) {

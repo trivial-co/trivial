@@ -1,5 +1,5 @@
+var common = require('./trivial_tests_common.js');
 var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
-
 
 contract('TrivialToken - Exchange tests', (accounts) => {
     var token, me;
@@ -30,7 +30,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
         token = await DevelopmentToken.new(
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(Date.now() / 1000 + 600),
+            common.now() + 600,
             600,
             artistAddress,
             trivialAddress,
@@ -43,7 +43,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
         await token.becomeTrivial();
         await token.startIco();
         await contributeInIco();
-        await token.setIcoEndTimePast();
+        common.goForwardInTime(601);
         await token.distributeTokens(3);
         await token.finishIco();
         assert.equal(parseInt(await token.balanceOf.call(userAddress2)), 200000,

@@ -1,31 +1,20 @@
-var trivial_builder = require('./trivial_builder.js');
-var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
+var common = require('./trivial_tests_common.js');
+var TrivialToken = artifacts.require("TrivialToken.sol");
 var BigNumber = require('bignumber.js')
-
-
-function goForwardInTime(seconds) {
-    web3.currentProvider.send({
-      jsonrpc: "2.0",
-      method: "evm_increaseTime",
-      params: [seconds],
-      id: new Date().getTime()
-  });
-}
 
 contract('TrivialToken - ICO tests', (accounts) => {
 
-    var token, me;
+    var token;
     var trivialContractBuilder;
     var trivialAddress = accounts[0];
     var artistAddress = accounts[1];
     var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
-        var now = parseInt(web3.currentProvider.send({jsonrpc:"2.0", method: "eth_getBlockByNumber", params:["latest", false]})['result']['timestamp'])
-        trivialContract = await DevelopmentToken.new(
+        trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(now + 600),
+            common.now() + 600,
             600,
             artistAddress,
             trivialAddress,
@@ -34,8 +23,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
             700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
-        trivialContractBuilder = new trivial_builder.TrivialContractBuilder(trivialContract, trivialAddress);
-        me = await trivialContract.getSelf.call();
+        trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivialAddress);
     })
 
     async function throws(fn, ...args) {
@@ -43,35 +31,6 @@ contract('TrivialToken - ICO tests', (accounts) => {
         try { await fn(...args); }
         catch (err) { thrown = true; }
         return thrown;
-    }
-
-    async function startIco() {
-        assert.equal(await trivialContract.currentState.call(), 0, 'Should be Created');
-        await trivialContract.becomeTrivial();
-        assert.equal(await trivialContract.getSelf.call(), me, 'Should be old self');
-        assert.equal(await trivialContract.getTrivial.call(), me, 'Should be Trivial');
-        await trivialContract.startIco();
-        assert.equal(await trivialContract.currentState.call(), 1, 'Should be IcoStarted');
-    }
-
-    async function contributeIco() {
-        assert.equal(await trivialContract.contributorsCount.call(), 0, 'Should be zero');
-        await trivialContract.contributeInIco({from: accounts[0], value: 100000000000000000});
-        await trivialContract.contributeInIco({from: accounts[1], value: 100000000000000000});
-        await trivialContract.contributeInIco({from: accounts[2], value: 200000000000000000});
-        await trivialContract.contributeInIco({from: accounts[3], value: 300000000000000000});
-        assert.equal(await trivialContract.contributorsCount.call(), 4, 'Should be two');
-    }
-
-    async function finishIco() {
-        assert.isOk(await throws(trivialContract.finishIco), 'finishIco - Should be thrown');
-        await trivialContract.setIcoEndTimePast();
-        await trivialContract.distributeTokens(4);
-        await trivialContract.finishIco();
-        assert.equal(await trivialContract.currentState.call(), 2, 'Should be IcoFinished');
-        assert.isOk(await throws(
-            trivialContract.contributeInIco, {from: accounts[1], value: 100000000000000000}
-        ), 'contributeInIco - Should be thrown');
     }
 
     it('Trivial can start ico', async () => {
@@ -86,6 +45,13 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.isOk(await throws(trivialContract.startIco, {from: otherUserAddress}));
     })
 
+    it('Users cannot contribute to ICO after ICO end time', async () => {
+        trivialContract = (await trivialContractBuilder.icoStarted()).get();
+        await trivialContract.contributeInIco({value: web3.toWei(5, 'ether')});
+        common.goForwardInTime(601);
+        assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(4, 'ether')}));
+    })
+
     it('User must contribute amounts bigger than 0.005 ether ', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
         assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(0.005, 'ether')}));
@@ -93,46 +59,33 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await trivialContract.contributeInIco({value: minProperAmount});
     })
 
-    it('Go IcoCancelled state if nobody contributed and ICO is finished', async () => {
+    it('amountRaised is equal to sum of all contributions', async () => {
+        trivialContract = (await trivialContractBuilder.contributions({
+            [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5
+        })).get();
+        assert.equal(await trivialContract.amountRaised(), web3.toWei(15, 'ether'));
+    })
+
+    it('amountRaised is equal to sum of all contributions', async () => {
+        trivialContract = (await trivialContractBuilder.contributions({
+            [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5
+        })).get();
+        assert.equal(await trivialContract.amountRaised(), web3.toWei(15, 'ether'));
+    })
+
+    it('Artist gets tokensForArtist tokens if he contributed nothing', async () => {
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [otherUserAddress]: 10
+        })).IcoFinished()).get();
+        var tokensForArtist = parseInt(await trivialContract.tokensForArtist());
+        assert.equal(parseInt(await trivialContract.balanceOf(artistAddress)), tokensForArtist,
+            'Balance of tokens should be equal to tokens distribution for artist');
+    })
+
+    it('Go to IcoCancelled state if nobody contributed and ICO is finished', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
-        goForwardInTime(601);
-        trivialContract.finishIco();
-        assert.equal(await trivialContract.currentState.call(), 5, 'Should be IcoCancelled');
+        common.goForwardInTime(601);
+        await trivialContract.finishIco();
+        assert.equal(parseInt(await trivialContract.currentState.call()), 5, 'Should be IcoCancelled');
     })
-
-    it('check Finish ICO', async () => {
-        await startIco();
-        await contributeIco();
-        await finishIco();
-    })
-
-    // it('cancel ICO no contributors', async () => {
-    //     await startIco();
-    //     await trivialContract.cancelIco();
-    //     assert.isOk(await throws(trivialContract.claimIcoContribution, accounts[0]
-    //     ), 'claimIcoContribution - Should be thrown');
-    //     assert.isOk(await throws(trivialContract.contributeInIco,
-    //         {from: accounts[0], value: 100000000000000000}
-    //     ), 'contributeInCancel - Should be thrown');
-    //     assert.equal(await trivialContract.currentState.call(), 5, 'Current state is different');
-    //     await trivialContract.killContract();
-    //     assert.isOk(await throws(trivialContract.name.call), 'Token name should not exist');
-    // })
-    //
-    // it('cancel ICO with contributors and refund them', async () => {
-    //     await startIco();
-    //     await contributeIco();
-    //     var balanceInIco = parseInt(await trivialContract.getBalance(accounts[0]));
-    //     await trivialContract.cancelIco();
-    //     await trivialContract.claimIcoContribution(accounts[0]);
-    //     assert.isAbove(parseInt(await trivialContract.getBalance(accounts[0])),
-    //         balanceInIco, 'Cancel ICO should return funds');
-    //     assert.isOk(await throws(trivialContract.contributeInIco,
-    //         {from: accounts[0], value: 100000000000000000}
-    //     ), 'contributeInCancel - Should be thrown');
-    //     assert.equal(await trivialContract.currentState.call(), 5, 'Current state is different');
-    //     await trivialContract.killContract();
-    //     assert.isOk(await throws(trivialContract.name.call), 'Token name should not exist');
-    // })
-
 });
