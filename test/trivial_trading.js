@@ -30,7 +30,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
         token = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
+            common.now() + 6000,
             600,
             artistAddress,
             trivialAddress,
@@ -42,7 +42,7 @@ contract('TrivialToken - Exchange tests', (accounts) => {
         await token.startIco({from: trivialAddress});
         assert.equal(await token.currentState.call(), 1, 'Should be one');
         await contributeInIco();
-        common.goForwardInTime(601);
+        common.goForwardInTime(6001);
         await token.distributeTokens(3);
         await token.finishIco();
         assert.equal(parseInt(await token.balanceOf.call(userAddress2)), 200000,
