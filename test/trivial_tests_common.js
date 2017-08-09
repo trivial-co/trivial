@@ -30,7 +30,7 @@ class TrivialContractBuilder {
         await this.icoStarted();
         for (var address in _contributions) {
             var contribution = _contributions[address];
-            await this.trivialContract.contributeInIco({value: web3.toWei(contribution, 'ether')});
+            await this.trivialContract.contributeInIco({from: address, value: web3.toWei(contribution, 'ether')});
         }
         return this;
     }
