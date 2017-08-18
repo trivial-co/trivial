@@ -125,6 +125,17 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.equal(trivialBalance, trivialExpectedBalance);
     })
 
+    it('Other users get share in tokensForIco proportianally to ICO contributions', async () => {
+        var userShare = 0.1
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [otherUserAddress]: 1, [accounts[5]]: 5, [accounts[6]]: 4
+        })).IcoFinished()).get();
+        var tokensForIco = parseInt(await trivialContract.tokensForIco());
+        var expectedUserBalance = userShare * tokensForIco
+        var userBalance = parseInt(await trivialContract.balanceOf(otherUserAddress))
+        assert.equal(userBalance, expectedUserBalance);
+    })
+
     it('Artist gets all the raised contributions', async () => {
         var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'))
         trivialContract = (await (await trivialContractBuilder.contributions({
