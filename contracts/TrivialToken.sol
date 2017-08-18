@@ -76,7 +76,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         uint256 _tokensForTrivial,
         uint256 _tokensForIco
     ) {
-        //require(now < _icoEndTime);
+        require(now < _icoEndTime);
         require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
