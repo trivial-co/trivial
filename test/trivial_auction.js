@@ -10,7 +10,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
         token = await DevelopmentToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
+            common.now() + 6000,
             600,
             accounts[8],
             accounts[9],

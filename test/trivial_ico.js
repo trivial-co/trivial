@@ -24,7 +24,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
+            common.now() + 6000,
             600,
             artistAddress,
             trivialAddress,
@@ -57,7 +57,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Users cannot contribute to ICO after ICO end time', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
         await trivialContract.contributeInIco({value: web3.toWei(5, 'ether')});
-        goForwardInTime(601);
+        goForwardInTime(6001);
         assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(4, 'ether')}));
     })
 
@@ -137,18 +137,18 @@ contract('TrivialToken - ICO tests', (accounts) => {
     })
 
     it('Artist gets all the raised contributions', async () => {
-        var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'))
+        var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 5, [trivialAddress]: 10, [artistAddress]: 5
         })).IcoFinished()).get();
-        var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'))
+        var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         var artistEtherBalanceChange = artistEtherBalanceAfter - artistEtherBalanceBefore
         assert.equal(artistEtherBalanceChange, 15)
     })
 
     it('Go to IcoCancelled state if nobody contributed and ICO is finished', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
-        goForwardInTime(601);
+        goForwardInTime(6001);
         trivialContract.finishIco();
         assert.equal(await trivialContract.currentState.call(), 5, 'Should be IcoCancelled');
     })

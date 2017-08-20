@@ -17,8 +17,8 @@ contract('TrivialToken - General tests', (accounts) => {
         trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
-            600,
+            common.now() + 6000,
+            6000,
             artistAddress,
             trivialAddress,
             200000,

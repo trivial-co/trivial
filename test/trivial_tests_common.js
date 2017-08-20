@@ -36,7 +36,7 @@ class TrivialContractBuilder {
     }
 
     async IcoFinished() {
-        goForwardInTime(601);
+        goForwardInTime(6001);
         await this.trivialContract.distributeTokens(100);
         await this.trivialContract.finishIco();
         return this;
