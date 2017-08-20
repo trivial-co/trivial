@@ -12,6 +12,7 @@ contract TrivialToken is StandardToken, PullPayment {
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
+    uint256 constant FREE_PERIOD_DURATION = 60 days;
 
     //Basic
     string public name;
@@ -27,6 +28,7 @@ contract TrivialToken is StandardToken, PullPayment {
     uint256 public icoEndTime;
     uint256 public auctionDuration;
     uint256 public auctionEndTime;
+    uint256 public freePeriodEndTime;
 
     //Token information
     uint256 public tokensForArtist;
@@ -103,6 +105,7 @@ contract TrivialToken is StandardToken, PullPayment {
         decimals = DECIMALS;
 
         icoEndTime = _icoEndTime;
+        freePeriodEndTime = _icoEndTime + freePeriodEndTime;
         auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
@@ -191,6 +194,7 @@ contract TrivialToken is StandardToken, PullPayment {
     }
 
     function startAuction()
+    onlyAfter(freePeriodEndTime)
     onlyInState(State.IcoFinished) {
         require(canStartAuction());
 
