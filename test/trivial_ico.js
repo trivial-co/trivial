@@ -130,7 +130,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Artist gets all the raised contributions', async () => {
         var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         trivialContract = (await (await trivialContractBuilder.contributions({
-            [otherUserAddress]: 5, [trivialAddress]: 10, [artistAddress]: 5
+            [otherUserAddress]: 5, [trivialAddress]: 10
         })).IcoFinished()).get();
         var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         var artistEtherBalanceChange = artistEtherBalanceAfter - artistEtherBalanceBefore

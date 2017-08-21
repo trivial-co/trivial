@@ -5,6 +5,9 @@ var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
 contract('TrivialToken - Auction tests', (accounts) => {
 
     var token, me;
+    var trivialAddress = accounts[0];
+    var artistAddress = accounts[1];
+    var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
         token = await DevelopmentToken.new(
@@ -89,6 +92,13 @@ contract('TrivialToken - Auction tests', (accounts) => {
             token.bidInAuction, {from: accounts[6], value: 900000000000000000}
         ), 'bidInAuction - Should be thrown');
     }
+
+    it('Auction can only be started after free period end', async () => {
+        assert.isOk(await throws(token.startAuction, {from: otherUserAddress}));
+        common.goForwardInTime(60 * 24 * 3600 + 1);
+        await token.startAuction();
+        assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
+    })
 
     it('check Auction start', async () => {
         await startAuction();
