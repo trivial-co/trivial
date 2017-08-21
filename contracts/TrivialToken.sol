@@ -105,7 +105,6 @@ contract TrivialToken is StandardToken, PullPayment {
         decimals = DECIMALS;
 
         icoDuration = _icoDuration;
-        freePeriodEndTime = _icoEndTime + freePeriodEndTime;
         auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
@@ -125,6 +124,7 @@ contract TrivialToken is StandardToken, PullPayment {
     onlyInState(State.Created)
     onlyTrivial() {
         icoEndTime = now + icoDuration;
+        freePeriodEndTime = icoEndTime + FREE_PERIOD_DURATION;
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
@@ -332,13 +332,14 @@ contract TrivialToken is StandardToken, PullPayment {
     function getContractState() constant returns (
         uint256, uint256, uint256, uint256, uint256,
         uint256, uint256, address, uint256, State,
-        uint256, uint256
+        uint256, uint256, uint256
     ) {
         return (
             icoEndTime, auctionDuration, auctionEndTime,
             tokensForArtist, tokensForTrivial, tokensForIco,
             amountRaised, highestBidder, highestBid, currentState,
-            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE
+            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE,
+            freePeriodEndTime
         );
     }
 
