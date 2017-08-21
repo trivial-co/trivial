@@ -24,6 +24,7 @@ contract TrivialToken is StandardToken, PullPayment {
     address public trivial;
 
     //Time information
+    uint256 public icoDuration;
     uint256 public icoEndTime;
     uint256 public auctionDuration;
     uint256 public auctionEndTime;
@@ -81,14 +82,13 @@ contract TrivialToken is StandardToken, PullPayment {
 
     function TrivialToken(
         string _name, string _symbol,
-        uint256 _icoEndTime, uint256 _auctionDuration,
+        uint256 _icoDuration, uint256 _auctionDuration,
         address _artist, address _trivial,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
         bytes32 _descriptionHash
     ) {
-        require(now < _icoEndTime);
         require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
@@ -102,7 +102,7 @@ contract TrivialToken is StandardToken, PullPayment {
         symbol = _symbol;
         decimals = DECIMALS;
 
-        icoEndTime = _icoEndTime;
+        icoDuration = _icoDuration;
         auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
@@ -121,6 +121,7 @@ contract TrivialToken is StandardToken, PullPayment {
     function startIco()
     onlyInState(State.Created)
     onlyTrivial() {
+        icoEndTime = now + icoDuration;
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
