@@ -190,7 +190,7 @@ contract TrivialToken is StandardToken, PullPayment {
     function canStartAuction() returns (bool) {
         bool isArtist = msg.sender == artist;
         bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
-        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
+        SafeMath.mul(TOTAL_SUPPLY, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
         return isArtist || isKeyHolder;
     }
 
