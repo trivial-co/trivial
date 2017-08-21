@@ -8,11 +8,12 @@ module.exports = function(deployer, network) {
             'TRVLTEST',
             Math.floor(Date.now() / 1000 + 600),
             600,
-            '0xE5f25b81b38D29A6e9C4E6Bd755d09ea4Ed10ff5',
-            '0xeAD3d0eD2685Bd669fe1D6BfdFe6F681912326D0',
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     } else {
         // production
@@ -27,7 +28,8 @@ module.exports = function(deployer, network) {
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
             350000,
             50000,
-            600000
+            600000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     }
 

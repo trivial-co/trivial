@@ -17,13 +17,14 @@ contract('TrivialToken - General tests', (accounts) => {
         trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 6000,
+            6000,
             6000,
             artistAddress,
             trivialAddress,
             200000,
             100000,
-            700000
+            700000,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
         trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivialAddress);
     })

@@ -55,3 +55,4 @@ function now() {
 
 module.exports.TrivialContractBuilder = TrivialContractBuilder;
 module.exports.now = now;
+module.exports.goForwardInTime = goForwardInTime;

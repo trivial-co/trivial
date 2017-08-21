@@ -1,11 +1,10 @@
 pragma solidity ^0.4.11;
 
+import "zeppelin-solidity/contracts/token/StandardToken.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
-import "./token/ERC223Token.sol";
 
-contract TrivialToken is ERC223Token, PullPayment {
-
+contract TrivialToken is StandardToken, PullPayment {
     //Constants
     uint8 constant DECIMALS = 0;
     uint256 constant MIN_ETH_AMOUNT = 0.005 ether;
@@ -13,15 +12,24 @@ contract TrivialToken is ERC223Token, PullPayment {
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
+    uint256 constant FREE_PERIOD_DURATION = 60 days;
+
+    //Basic
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
 
     //Accounts
     address public artist;
     address public trivial;
 
     //Time information
+    uint256 public icoDuration;
     uint256 public icoEndTime;
     uint256 public auctionDuration;
     uint256 public auctionEndTime;
+    uint256 public freePeriodEndTime;
 
     //Token information
     uint256 public tokensForArtist;
@@ -50,6 +58,14 @@ contract TrivialToken is ERC223Token, PullPayment {
     enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
     State public currentState;
 
+    //Item description
+    struct DescriptionHash {
+        bytes32 descriptionHash;
+        uint256 timestamp;
+    }
+    DescriptionHash public descriptionHash;
+    DescriptionHash[] public descriptionHashHistory;
+
     //Token contributors and holders
     mapping(address => uint) public contributions;
     address[] public contributors;
@@ -59,9 +75,7 @@ contract TrivialToken is ERC223Token, PullPayment {
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
-    modifier onlyKeyHolders() { require(balances[msg.sender] >= SafeMath.div(
-        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100)); _;
-    }
+    modifier onlyArtist() { require(msg.sender == artist); _; }
     modifier onlyAuctionWinner() {
         require(currentState == State.AuctionFinished);
         require(msg.sender == highestBidder);
@@ -70,13 +84,13 @@ contract TrivialToken is ERC223Token, PullPayment {
 
     function TrivialToken(
         string _name, string _symbol,
-        uint256 _icoEndTime, uint256 _auctionDuration,
+        uint256 _icoDuration, uint256 _auctionDuration,
         address _artist, address _trivial,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
-        uint256 _tokensForIco
+        uint256 _tokensForIco,
+        bytes32 _descriptionHash
     ) {
-        require(now < _icoEndTime);
         require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
@@ -90,7 +104,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         symbol = _symbol;
         decimals = DECIMALS;
 
-        icoEndTime = _icoEndTime;
+        icoDuration = _icoDuration;
         auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
@@ -99,6 +113,7 @@ contract TrivialToken is ERC223Token, PullPayment {
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
+        descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
     }
 
@@ -108,6 +123,8 @@ contract TrivialToken is ERC223Token, PullPayment {
     function startIco()
     onlyInState(State.Created)
     onlyTrivial() {
+        icoEndTime = now + icoDuration;
+        freePeriodEndTime = icoEndTime + FREE_PERIOD_DURATION;
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
@@ -170,9 +187,18 @@ contract TrivialToken is ERC223Token, PullPayment {
     /*
         Auction methods
     */
+    function canStartAuction() returns (bool) {
+        bool isArtist = msg.sender == artist;
+        bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
+        SafeMath.mul(TOTAL_SUPPLY, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
+        return isArtist || isKeyHolder;
+    }
+
     function startAuction()
-    onlyInState(State.IcoFinished)
-    onlyKeyHolders() {
+    onlyAfter(freePeriodEndTime)
+    onlyInState(State.IcoFinished) {
+        require(canStartAuction());
+
         // 100% tokens owner is the only key holder
         if (balances[msg.sender] == TOTAL_SUPPLY) {
             // no auction takes place,
@@ -259,6 +285,8 @@ contract TrivialToken is ERC223Token, PullPayment {
         General methods
     */
 
+    function contributorsCount() constant returns (uint256) { return contributors.length; }
+
     // Cancel ICO will be redesigned to prevent
     // risk of user funds overtaken
 
@@ -275,6 +303,12 @@ contract TrivialToken is ERC223Token, PullPayment {
         contributions[contributor] = 0;
         contributor.transfer(contribution);
     }*/
+
+    function setDescriptionHash(bytes32 _descriptionHash)
+    onlyArtist() {
+        descriptionHashHistory.push(descriptionHash);
+        descriptionHash = DescriptionHash(_descriptionHash, now);
+    }
 
     function setAuctionWinnerMessageHash(bytes32 _auctionWinnerMessageHash)
     onlyAuctionWinner() {
@@ -298,27 +332,36 @@ contract TrivialToken is ERC223Token, PullPayment {
     function getContractState() constant returns (
         uint256, uint256, uint256, uint256, uint256,
         uint256, uint256, address, uint256, State,
-        uint256, uint256
+        uint256, uint256, uint256
     ) {
         return (
             icoEndTime, auctionDuration, auctionEndTime,
             tokensForArtist, tokensForTrivial, tokensForIco,
             amountRaised, highestBidder, highestBid, currentState,
-            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE
+            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE,
+            freePeriodEndTime
         );
     }
 
-    function transfer(address _to, uint _value, bytes _data) onlyInState(State.IcoFinished) returns (bool) {
-        return ERC223Token.transfer(_to, _value, _data);
+    function transfer(address _to, uint _value)
+    onlyInState(State.IcoFinished) returns (bool) {
+        return BasicToken.transfer(_to, _value);
     }
 
-    function transfer(address _to, uint _value) returns (bool) {
-        // onlyInState(IcoFinished) check is contained in a call below
-        bytes memory empty;
-        return transfer(_to, _value, empty);
+    function transferFrom(address _from, address _to, uint256 _value)
+    onlyInState(State.IcoFinished) returns (bool) {
+        return StandardToken.transferFrom(_from, _to, _value);
     }
 
     function () payable {
-        revert();
+        if (currentState == State.IcoStarted) {
+            contributeInIco();
+        }
+        else if (currentState == State.AuctionStarted) {
+            bidInAuction();
+        }
+        else {
+            revert();
+        }
     }
 }
