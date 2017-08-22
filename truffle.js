@@ -15,11 +15,11 @@ module.exports = {
       gas: 4000000,
       gasPrice: 30000000000,
     },
-    production: {
+    mainnet: {
         network_id: 1, // Official main network id
         provider: new HDWalletProvider(mnemonic, 'https://mainnet.infura.io/IMsVbCijmt9z4RnBadCo'),
         gas: 4000000,
-        gasPrice: 30000000000,
+        gasPrice: 40000000000,
     }
   }
 };
