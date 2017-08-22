@@ -123,8 +123,8 @@ contract TrivialToken is StandardToken, PullPayment {
     function startIco()
     onlyInState(State.Created)
     onlyTrivial() {
-        icoEndTime = now + icoDuration;
-        freePeriodEndTime = icoEndTime + FREE_PERIOD_DURATION;
+        icoEndTime = SafeMath.add(now, icoDuration);
+        freePeriodEndTime = SafeMath.add(icoEndTime, FREE_PERIOD_DURATION);
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
