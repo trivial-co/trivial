@@ -6,7 +6,7 @@ module.exports = function(deployer, network) {
             TrivialToken,
             'TrivialTest',
             'TRVLTEST',
-            Math.floor(Date.now() / 1000 + 600),
+            600,
             600,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
@@ -20,9 +20,9 @@ module.exports = function(deployer, network) {
         const TWO_WEEKS_IN_SECONDS = 1209600;
         deployer.deploy(
             TrivialToken,
-            'Rat Token',
-            'TRT',
-            Math.floor((Date.now() / 1000) + TWO_WEEKS_IN_SECONDS),
+            'Chain Token',
+            'TCT',
+            TWO_WEEKS_IN_SECONDS,
             TWO_WEEKS_IN_SECONDS,
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
