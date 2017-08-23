@@ -91,12 +91,12 @@ contract TrivialToken is StandardToken, PullPayment {
         uint256 _tokensForIco,
         bytes32 _descriptionHash
     ) {
-        require(
+        /*require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
                 SafeMath.add(_tokensForTrivial, _tokensForIco)
             )
-        );
+        );*/
         require(MIN_BID_PERCENTAGE < 100);
         require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
