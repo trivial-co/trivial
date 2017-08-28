@@ -30,10 +30,11 @@
   },
   "homepage": "https://github.com/trivial-co/trivial#readme",
   "dependencies": {
+    "bignumber.js": "latest",
+    "solc": "^0.4.16",
     "truffle": "^3.4.5",
     "truffle-hdwallet-provider": "0.0.3",
-    "zeppelin-solidity": "^1.2.0",
-    "bignumber.js": "latest"
+    "zeppelin-solidity": "^1.2.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
