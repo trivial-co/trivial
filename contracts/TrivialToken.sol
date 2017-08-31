@@ -11,8 +11,8 @@ contract TrivialToken is StandardToken, PullPayment {
     uint256 constant MIN_BID_PERCENTAGE = 10;
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
-    uint256 constant CLEANUP_DELAY = 180 days;
-    uint256 constant FREE_PERIOD_DURATION = 60 days;
+    uint256 constant CLEANUP_DELAY = 7 days;
+    uint256 constant FREE_PERIOD_DURATION = 5 minutes;
 
     //Basic
     string public name;
