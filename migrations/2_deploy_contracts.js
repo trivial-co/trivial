@@ -16,19 +16,22 @@ module.exports = function(deployer, network) {
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     } else {
-        // production
-        const TWO_WEEKS_IN_SECONDS = 1209600;
+        // deploy at 14:00 CET
+        // do the ICO with 1 contrib different than trivial
+        // ICO will take 10 minutes
+        // start auction at 15:00 CET
+        const DLD_44_HOURS = 158400;
         deployer.deploy(
             TrivialToken,
-            'Chain Token',
-            'TCT',
+            'DLD Token',
+            'DLDTKN',
             600,
-            TWO_WEEKS_IN_SECONDS,
+            DLD_44_HOURS,
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
             '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
-            350000,
-            50000,
-            600000,
+            200000,
+            100000,
+            700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     }
