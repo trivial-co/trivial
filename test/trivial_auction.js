@@ -4,12 +4,15 @@ var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
 contract('TrivialToken - Auction tests', (accounts) => {
 
     var token, me;
+    var trivialAddress = accounts[0];
+    var artistAddress = accounts[1];
+    var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
         token = await DevelopmentToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
+            6000,
             600,
             accounts[8],
             accounts[9],
@@ -28,7 +31,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
         await token.contributeInIco({from: accounts[2], value: 200000000000000000});
         await token.contributeInIco({from: accounts[3], value: 200000000000000000});
         await token.contributeInIco({from: me, value: 300000000000000000});
-        await token.setIcoEndTimePast();
+        common.goForwardInTime(6001);
         await token.distributeTokens(5);
         await token.finishIco();
         assert.equal(await token.currentState.call(), 2, 'Should be two');
@@ -42,6 +45,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
     }
 
     async function startAuction() {
+        common.goForwardInTime(60 * 24 * 3600 + 1);
         await token.startAuction();
         assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
         assert.isAbove(await token.auctionEndTime(),
@@ -88,6 +92,13 @@ contract('TrivialToken - Auction tests', (accounts) => {
         ), 'bidInAuction - Should be thrown');
     }
 
+    it('Auction can only be started after free period end', async () => {
+        assert.isOk(await throws(token.startAuction, {from: otherUserAddress}));
+        common.goForwardInTime(60 * 24 * 3600 + 1);
+        await token.startAuction();
+        assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
+    })
+
     it('check Auction start', async () => {
         await startAuction();
     })
@@ -102,28 +113,4 @@ contract('TrivialToken - Auction tests', (accounts) => {
         await bidAuction();
         await finishAuction();
     })
-
-    it('check Auction buyout - one user 100% tokens', async () => {
-        assert.isAbove(parseInt(await token.getTokens.call(me)), 0);
-        assert.isAbove(parseInt(await token.getTokens.call(accounts[8])), 0);
-        assert.isAbove(parseInt(await token.getTokens.call(accounts[0])), 0);
-        assert.isAbove(parseInt(await token.getTokens.call(accounts[1])), 0);
-        assert.isAbove(parseInt(await token.getTokens.call(accounts[2])), 0);
-        assert.isAbove(parseInt(await token.getTokens.call(accounts[3])), 0);
-        await token.setTokens(me, 0);
-        await token.setTokens(accounts[8], 0);
-        await token.setTokens(accounts[0], 0);
-        await token.setTokens(accounts[1], 0);
-        await token.setTokens(accounts[2], 0);
-        await token.setTokens(accounts[3], 1000000);
-        assert.equal(parseInt(await token.getTokens.call(me)), 0);
-        assert.equal(parseInt(await token.getTokens.call(accounts[8])), 0);
-        assert.equal(parseInt(await token.getTokens.call(accounts[0])), 0);
-        assert.equal(parseInt(await token.getTokens.call(accounts[1])), 0);
-        assert.equal(parseInt(await token.getTokens.call(accounts[2])), 0);
-        assert.equal(parseInt(await token.getTokens.call(accounts[3])), 1000000);
-        await token.startAuction({from: accounts[3]});
-        assert.equal(await token.currentState.call(), 4, 'Should be AuctionFinished');
-    })
-
 });

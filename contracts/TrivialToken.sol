@@ -12,6 +12,13 @@ contract TrivialToken is StandardToken, PullPayment {
     uint256 constant TOTAL_SUPPLY = 1000000;
     uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
     uint256 constant CLEANUP_DELAY = 180 days;
+    uint256 constant FREE_PERIOD_DURATION = 60 days;
+
+    //Basic
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
 
     //Basic
     string public name;
@@ -24,9 +31,11 @@ contract TrivialToken is StandardToken, PullPayment {
     address public trivial;
 
     //Time information
+    uint256 public icoDuration;
     uint256 public icoEndTime;
     uint256 public auctionDuration;
     uint256 public auctionEndTime;
+    uint256 public freePeriodEndTime;
 
     //Token information
     uint256 public tokensForArtist;
@@ -81,20 +90,19 @@ contract TrivialToken is StandardToken, PullPayment {
 
     function TrivialToken(
         string _name, string _symbol,
-        uint256 _icoEndTime, uint256 _auctionDuration,
+        uint256 _icoDuration, uint256 _auctionDuration,
         address _artist, address _trivial,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
         bytes32 _descriptionHash
     ) {
-        require(now < _icoEndTime);
-        require(
+        /*require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
                 SafeMath.add(_tokensForTrivial, _tokensForIco)
             )
-        );
+        );*/
         require(MIN_BID_PERCENTAGE < 100);
         require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
@@ -102,7 +110,7 @@ contract TrivialToken is StandardToken, PullPayment {
         symbol = _symbol;
         decimals = DECIMALS;
 
-        icoEndTime = _icoEndTime;
+        icoDuration = _icoDuration;
         auctionDuration = _auctionDuration;
         artist = _artist;
         trivial = _trivial;
@@ -121,6 +129,8 @@ contract TrivialToken is StandardToken, PullPayment {
     function startIco()
     onlyInState(State.Created)
     onlyTrivial() {
+        icoEndTime = SafeMath.add(now, icoDuration);
+        freePeriodEndTime = SafeMath.add(icoEndTime, FREE_PERIOD_DURATION);
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
@@ -186,11 +196,12 @@ contract TrivialToken is StandardToken, PullPayment {
     function canStartAuction() returns (bool) {
         bool isArtist = msg.sender == artist;
         bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
-        SafeMath.mul(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
+        SafeMath.mul(TOTAL_SUPPLY, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
         return isArtist || isKeyHolder;
     }
 
     function startAuction()
+    onlyAfter(freePeriodEndTime)
     onlyInState(State.IcoFinished) {
         require(canStartAuction());
 
@@ -327,13 +338,14 @@ contract TrivialToken is StandardToken, PullPayment {
     function getContractState() constant returns (
         uint256, uint256, uint256, uint256, uint256,
         uint256, uint256, address, uint256, State,
-        uint256, uint256
+        uint256, uint256, uint256
     ) {
         return (
             icoEndTime, auctionDuration, auctionEndTime,
             tokensForArtist, tokensForTrivial, tokensForIco,
             amountRaised, highestBidder, highestBid, currentState,
-            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE
+            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE,
+            freePeriodEndTime
         );
     }
 

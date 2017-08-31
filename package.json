@@ -21,14 +21,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/10clouds/trivial.git"
+    "url": "git+https://github.com/trivial-co/trivial.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/10clouds/trivial/issues"
+    "url": "https://github.com/trivial-co/trivial/issues"
   },
-  "homepage": "https://github.com/10clouds/trivial#readme",
+  "homepage": "https://github.com/trivial-co/trivial#readme",
   "dependencies": {
     "truffle": "^3.4.5",
     "truffle-hdwallet-provider": "0.0.3",

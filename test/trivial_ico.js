@@ -14,7 +14,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         trivialContract = await TrivialToken.new(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 600,
+            6000,
             600,
             artistAddress,
             trivialAddress,
@@ -48,7 +48,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Users cannot contribute to ICO after ICO end time', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
         await trivialContract.contributeInIco({value: web3.toWei(5, 'ether')});
-        common.goForwardInTime(601);
+        common.goForwardInTime(6001);
         assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(4, 'ether')}));
     })
 
@@ -57,13 +57,6 @@ contract('TrivialToken - ICO tests', (accounts) => {
         assert.isOk(await throws(trivialContract.contributeInIco, {value: web3.toWei(0.005, 'ether')}));
         var minProperAmount = (new BigNumber(web3.toWei(0.005, 'ether'))).add(1).toString()
         await trivialContract.contributeInIco({value: minProperAmount});
-    })
-
-    it('amountRaised is equal to sum of all contributions', async () => {
-        trivialContract = (await trivialContractBuilder.contributions({
-            [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5
-        })).get();
-        assert.equal(await trivialContract.amountRaised(), web3.toWei(15, 'ether'));
     })
 
     it('amountRaised is equal to sum of all contributions', async () => {
@@ -128,18 +121,18 @@ contract('TrivialToken - ICO tests', (accounts) => {
     })
 
     it('Artist gets all the raised contributions', async () => {
-        var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'))
+        var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         trivialContract = (await (await trivialContractBuilder.contributions({
-            [otherUserAddress]: 5, [trivialAddress]: 10, [artistAddress]: 5
+            [otherUserAddress]: 5, [trivialAddress]: 10
         })).IcoFinished()).get();
-        var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'))
+        var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         var artistEtherBalanceChange = artistEtherBalanceAfter - artistEtherBalanceBefore
         assert.equal(artistEtherBalanceChange, 15)
     })
 
     it('Go to IcoCancelled state if nobody contributed and ICO is finished', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
-        common.goForwardInTime(601);
+        common.goForwardInTime(6001);
         await trivialContract.finishIco();
         assert.equal(parseInt(await trivialContract.currentState.call()), 5, 'Should be IcoCancelled');
     })
