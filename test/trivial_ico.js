@@ -73,7 +73,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         })).IcoFinished()).get();
         var tokensForArtist = parseInt(await trivialContract.tokensForArtist());
 
-        assert.equal(await trivialContract.balanceOf(artistAddress), tokensForArtist);
+        assert.equal(parseInt(await trivialContract.balanceOf(artistAddress)), tokensForArtist);
     })
 
     it('Artist gets tokensForArtist tokens plus his share from ICO contributions', async () => {
@@ -133,7 +133,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Go to IcoCancelled state if nobody contributed and ICO is finished', async () => {
         trivialContract = (await trivialContractBuilder.icoStarted()).get();
         common.goForwardInTime(6001);
-        trivialContract.finishIco();
-        assert.equal(await trivialContract.currentState.call(), 5, 'Should be IcoCancelled');
+        await trivialContract.finishIco();
+        assert.equal(parseInt(await trivialContract.currentState.call()), 5, 'Should be IcoCancelled');
     })
 });

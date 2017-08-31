@@ -1,7 +1,6 @@
 var common = require('./trivial_tests_common.js');
 var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
 
-
 contract('TrivialToken - Auction tests', (accounts) => {
 
     var token, me;
