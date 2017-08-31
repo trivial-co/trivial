@@ -20,12 +20,6 @@ contract TrivialToken is StandardToken, PullPayment {
     uint8 public decimals;
     uint256 public totalSupply;
 
-    //Basic
-    string public name;
-    string public symbol;
-    uint8 public decimals;
-    uint256 public totalSupply;
-
     //Accounts
     address public artist;
     address public trivial;
