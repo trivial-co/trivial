@@ -6,7 +6,7 @@ module.exports = function(deployer, network) {
             TrivialToken,
             'TrivialTest',
             'TRVLTEST',
-            600,
+            60,
             600,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
@@ -16,19 +16,22 @@ module.exports = function(deployer, network) {
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     } else {
-        // production
-        const TWO_WEEKS_IN_SECONDS = 1209600;
+        // deploy at 14:00 CET
+        // do the ICO with 1 contrib different than trivial
+        // ICO will take 10 minutes
+        // start auction at 15:00 CET
+        const DLD_44_HOURS = 158400;
         deployer.deploy(
             TrivialToken,
-            'Chain Token',
-            'TCT',
-            TWO_WEEKS_IN_SECONDS,
-            TWO_WEEKS_IN_SECONDS,
-            '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
-            '0x70dc1075F2c26923028Cfe36fDa46ACABB343bB2',
-            350000,
-            50000,
-            600000,
+            'DLD Token',
+            'DLDTKN',
+            600,
+            DLD_44_HOURS,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc',
+            200000,
+            100000,
+            700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
     }
