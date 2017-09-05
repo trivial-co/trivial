@@ -14,6 +14,8 @@
     "migrate": "truffle migrate",
     "premigrate-public": "npm run clean",
     "migrate-public": "truffle migrate --network ropsten",
+    "premigrate-production": "npm run clean",
+    "migrate-production": "truffle migrate --network production",
     "pretest": "npm run clean",
     "test": "truffle test --network development",
     "pretest-coverage": "npm run clean",
