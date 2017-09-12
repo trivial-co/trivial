@@ -11,7 +11,8 @@ contract('TrivialToken - ICO tests', (accounts) => {
     var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
-        trivialContract = await TrivialToken.new(
+        trivialContract = await TrivialToken.new();
+        await token.initToken(
             'TrivialTest',
             'TRVLTEST',
             6000,

@@ -14,7 +14,8 @@ contract('TrivialToken - General tests', (accounts) => {
     var artistAddress = accounts[1];
 
     beforeEach(async () => {
-        trivialContract = await TrivialToken.new(
+        trivialContract = await TrivialToken.new();
+        await token.initToken(
             'TrivialTest',
             'TRVLTEST',
             6000,

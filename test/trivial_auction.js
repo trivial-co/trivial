@@ -9,7 +9,8 @@ contract('TrivialToken - Auction tests', (accounts) => {
     var otherUserAddress = accounts[2];
 
     beforeEach(async () => {
-        token = await DevelopmentToken.new(
+        token = await DevelopmentToken.new();
+        await token.initToken(
             'TrivialTest',
             'TRVLTEST',
             6000,
@@ -21,9 +22,6 @@ contract('TrivialToken - Auction tests', (accounts) => {
             700000,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
-        me = await token.getSelf.call();
-        assert.equal(await token.currentState.call(), 0, 'Should be zero');
-        await token.becomeTrivial();
         await token.startIco();
         assert.equal(await token.currentState.call(), 1, 'Should be one');
         await token.contributeInIco({from: accounts[0], value: 100000000000000000});

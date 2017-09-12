@@ -4,20 +4,7 @@ import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./TrivialToken.sol";
 
 contract DevelopmentTrivialToken is TrivialToken {
-    function DevelopmentTrivialToken(
-        string _name, string _symbol,
-        uint256 _icoEndTime, uint256 _auctionDuration,
-        address _artist, address _trivial,
-        uint256 _tokensForArtist,
-        uint256 _tokensForTrivial,
-        uint256 _tokensForIco,
-        bytes32 _descriptionHash
-    ) TrivialToken(
-        _name, _symbol,
-        _icoEndTime, _auctionDuration, _artist, _trivial,
-        _tokensForArtist, _tokensForTrivial, _tokensForIco,
-        _descriptionHash
-    ) {}
+    function DevelopmentTrivialToken() TrivialToken() {}
 
     /*
         Development

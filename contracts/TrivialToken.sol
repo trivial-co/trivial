@@ -55,7 +55,9 @@ contract TrivialToken is StandardToken, PullPayment {
     event WinnerProvidedHash();
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
+    enum State {
+        Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled, BeforeInit
+    }
     State public currentState;
 
     //Item description
@@ -82,7 +84,11 @@ contract TrivialToken is StandardToken, PullPayment {
         _;
     }
 
-    function TrivialToken(
+    function TrivialToken() {
+        currentState = State.BeforeInit;
+    }
+
+    function initToken(
         string _name, string _symbol,
         uint256 _icoDuration, uint256 _auctionDuration,
         address _artist, address _trivial,
@@ -90,13 +96,15 @@ contract TrivialToken is StandardToken, PullPayment {
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
         bytes32 _descriptionHash
-    ) {
-        /*require(
+    )
+    onlyInState(State.BeforeInit)
+    {
+        require(
             TOTAL_SUPPLY == SafeMath.add(
                 _tokensForArtist,
                 SafeMath.add(_tokensForTrivial, _tokensForIco)
             )
-        );*/
+        );
         require(MIN_BID_PERCENTAGE < 100);
         require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
 
