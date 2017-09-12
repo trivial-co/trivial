@@ -27,7 +27,8 @@ contract('TrivialToken - Exchange tests', (accounts) => {
     }
 
     beforeEach(async () => {
-        token = await TrivialToken.new(
+        token = await TrivialToken.new();
+        await token.initToken(
             'TrivialTest',
             'TRVLTEST',
             common.now() + 6000,
