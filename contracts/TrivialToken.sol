@@ -72,6 +72,11 @@ contract TrivialToken is StandardToken, PullPayment {
 
     //Modififers
     modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
+    modifier onlyInTokensTrasferingPeriod() {
+        require(currentState == State.IcoFinished || currentState == State.AuctionStarted);
+        require(now < auctionEndTime);
+        _;
+    }
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
     modifier onlyAfter(uint256 _time) { require(now > _time); _; }
     modifier onlyTrivial() { require(msg.sender == trivial); _; }
@@ -344,12 +349,20 @@ contract TrivialToken is StandardToken, PullPayment {
     }
 
     function transfer(address _to, uint _value)
-    onlyInState(State.IcoFinished) returns (bool) {
+    onlyInTokensTrasferingPeriod() returns (bool) {
+        if (currentState == State.AuctionStarted) {
+            require(_to != highestBidder);
+            require(msg.sender != highestBidder);
+        }
         return BasicToken.transfer(_to, _value);
     }
 
     function transferFrom(address _from, address _to, uint256 _value)
-    onlyInState(State.IcoFinished) returns (bool) {
+    onlyInTokensTrasferingPeriod() returns (bool) {
+        if (currentState == State.AuctionStarted) {
+            require(_to != highestBidder);
+            require(msg.sender != highestBidder);
+        }
         return StandardToken.transferFrom(_from, _to, _value);
     }
 

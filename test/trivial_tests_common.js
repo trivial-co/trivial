@@ -35,10 +35,18 @@ class TrivialContractBuilder {
         return this;
     }
 
-    async IcoFinished() {
+    async icoFinished() {
         goForwardInTime(6001);
         await this.trivialContract.distributeTokens(100);
         await this.trivialContract.finishIco();
+        return this;
+    }
+
+    async auctionStarted(startAuctionFrom) {
+        await this.contributions({[startAuctionFrom]: 1});
+        await this.icoFinished();
+        goForwardInTime(60 * 24 * 3600 + 1);
+        await this.trivialContract.startAuction({from: startAuctionFrom});
         return this;
     }
 
