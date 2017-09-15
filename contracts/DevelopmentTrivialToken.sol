@@ -4,20 +4,7 @@ import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./TrivialToken.sol";
 
 contract DevelopmentTrivialToken is TrivialToken {
-    function DevelopmentTrivialToken(
-        string _name, string _symbol,
-        uint256 _icoEndTime, uint256 _auctionDuration,
-        address _artist, address _trivial,
-        uint256 _tokensForArtist,
-        uint256 _tokensForTrivial,
-        uint256 _tokensForIco,
-        bytes32 _descriptionHash
-    ) TrivialToken(
-        _name, _symbol,
-        _icoEndTime, _auctionDuration, _artist, _trivial,
-        _tokensForArtist, _tokensForTrivial, _tokensForIco,
-        _descriptionHash
-    ) {}
+    function DevelopmentTrivialToken() TrivialToken() {}
 
     /*
         Development
@@ -37,7 +24,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function getArtist() constant returns (address) { return artist; }
     function getSelf() constant returns (address) { return msg.sender; }
     function becomeKeyHolder() {
-        balances[msg.sender] = SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        balances[msg.sender] = SafeMath.div(tokensForIco, tokensPercentageForKeyHolder); }
 
     function setIcoEndTime(uint256 time) { icoEndTime = time; }
     function setIcoEndTimeOneMinute() { icoEndTime = now + 1 minutes; }
@@ -45,6 +32,9 @@ contract DevelopmentTrivialToken is TrivialToken {
     function setAuctionEndTime(uint256 time) { auctionEndTime = time; }
     function setAuctionEndTimeOneMinute() { auctionEndTime = now + 1 minutes; }
     function setAuctionEndTimePast() { auctionEndTime = now - 1 minutes; }
+    function setFreePeriodEndTime(uint256 time) { freePeriodEndTime = time; }
+    function setFreePeriodEndTimeOneMinute() { freePeriodEndTime = now + 1 minutes; }
+    function setFreePeriodEndTimePast() { freePeriodEndTime = now - 1 minutes; }
 
     function getBalance(address account) constant returns (uint256) { return account.balance; }
     function getTokens(address account) constant returns (uint256) { return balances[account]; }

@@ -15,6 +15,10 @@ For public test network:
 
 - Run on Ropsten: `npm run migrate-public`
 
+For main production network:
+
+- Run on Mainnet: `npm run migrate-production`
+
 ## Test
 
 For local testing:

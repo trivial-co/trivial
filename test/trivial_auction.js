@@ -1,7 +1,6 @@
 var common = require('./trivial_tests_common.js');
 var TrivialToken = artifacts.require("TrivialToken.sol");
 
-
 contract('TrivialToken - Auction tests', (accounts) => {
 
     var trivialContract;
@@ -11,17 +10,27 @@ contract('TrivialToken - Auction tests', (accounts) => {
     var otherUserAddress2 = accounts[2];
 
     beforeEach(async () => {
-        trivialContract = await TrivialToken.new(
+        trivialContract = await TrivialToken.new()
+        await trivialContract.initOne(
             'TrivialTest',
             'TRVLTEST',
+            0,
             6000,
-            600,
+            6000,
             artistAddress,
             trivialAddress,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+        );
+        await trivialContract.initTwo(
+            1000000,
             200000,
             100000,
             700000,
-            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+            web3.toWei(0.01, 'ether'),
+            10,
+            25,
+            180 * 24 * 3600,
+            60 * 24 * 3600
         );
         trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivialAddress);
     })
@@ -35,7 +44,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     async function startAuction() {
         common.goForwardInTime(60 * 24 * 3600 + 1);
-        await token.startAuction();
+        await token.startAuction({from: accounts[1]});
         assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
         assert.isAbove(await token.auctionEndTime(),
             common.now(), 'Should be in future');
@@ -89,11 +98,12 @@ contract('TrivialToken - Auction tests', (accounts) => {
         common.goForwardInTime(60 * 24 * 3600 + 1);
         await trivialContract.startAuction();
         assert.equal(await trivialContract.currentState(), 3, 'Should be AuctionStarted');
+
     })
 
     it('Current bidder cannot transfer tokens', async () => {
         trivialContract = (await trivialContractBuilder.auctionStarted(otherUserAddress)).get();
         await trivialContract.bidInAuction({from: otherUserAddress, value: web3.toWei(0.05, 'ether')});
-        await trivialContract.transfer(otherUserAddress2, 10, {from: otherUserAddress});
+        assert.isOk(await throws(trivialContract.transfer, otherUserAddress2, 10, {from: otherUserAddress}));
     })
 });

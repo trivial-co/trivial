@@ -14,19 +14,29 @@ contract('TrivialToken - General tests', (accounts) => {
     var artistAddress = accounts[1];
 
     beforeEach(async () => {
-        trivialContract = await TrivialToken.new(
+        token = await TrivialToken.new();
+        await token.initOne(
             'TrivialTest',
             'TRVLTEST',
+            0,
             6000,
             6000,
             artistAddress,
             trivialAddress,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+        );
+        await token.initTwo(
+            1000000,
             200000,
             100000,
             700000,
-            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+            web3.toWei(0.01, 'ether'),
+            10,
+            25,
+            6000,
+            6000
         );
-        trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivialAddress);
+        trivialContractBuilder = new common.TrivialContractBuilder(token, trivialAddress);
     })
 
     async function throws(fn, ...args) {
@@ -37,7 +47,7 @@ contract('TrivialToken - General tests', (accounts) => {
     }
 
     it('should create TrivialToken', async () => {
-        assert.equal(await trivialContract.name(), 'TrivialTest', 'Token name is not Trivial');
-        assert.equal(await trivialContract.currentState(), State.Created, 'Current state is different');
+        assert.equal(await token.name(), 'TrivialTest', 'Token name is not Trivial');
+        assert.equal(await token.currentState(), State.Created, 'Current state is different');
     })
 });

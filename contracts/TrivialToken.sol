@@ -6,18 +6,16 @@ import "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract TrivialToken is StandardToken, PullPayment {
     //Constants
-    uint8 constant DECIMALS = 0;
-    uint256 constant MIN_ETH_AMOUNT = 0.005 ether;
-    uint256 constant MIN_BID_PERCENTAGE = 10;
-    uint256 constant TOTAL_SUPPLY = 1000000;
-    uint256 constant TOKENS_PERCENTAGE_FOR_KEY_HOLDER = 25;
-    uint256 constant CLEANUP_DELAY = 180 days;
-    uint256 constant FREE_PERIOD_DURATION = 60 days;
+    uint256 public minEthAmount = 0.005 ether;
+    uint256 public minBidPercentage = 10;
+    uint256 public tokensPercentageForKeyHolder = 25;
+    uint256 public cleanupDelay = 180 days;
+    uint256 public freePeriodDuration = 60 days;
 
     //Basic
     string public name;
     string public symbol;
-    uint8 public decimals;
+    uint8 public decimals = 0;
     uint256 public totalSupply;
 
     //Accounts
@@ -55,7 +53,10 @@ contract TrivialToken is StandardToken, PullPayment {
     event WinnerProvidedHash();
 
     //State
-    enum State { Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled }
+    enum State {
+        Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled,
+        BeforeInitOne, BeforeInitTwo
+    }
     State public currentState;
 
     //Item description
@@ -87,38 +88,68 @@ contract TrivialToken is StandardToken, PullPayment {
         _;
     }
 
-    function TrivialToken(
-        string _name, string _symbol,
-        uint256 _icoDuration, uint256 _auctionDuration,
-        address _artist, address _trivial,
+    function TrivialToken() {
+        currentState = State.BeforeInitOne;
+    }
+
+    function initOne(
+        string _name,
+        string _symbol,
+        uint8 _decimals,
+        uint256 _icoDuration,
+        uint256 _auctionDuration,
+        address _artist,
+        address _trivial,
+        bytes32 _descriptionHash
+    )
+    onlyInState(State.BeforeInitOne)
+    {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+
+        icoDuration = _icoDuration;
+        auctionDuration = _auctionDuration;
+
+        artist = _artist;
+        trivial = _trivial;
+
+        descriptionHash = DescriptionHash(_descriptionHash, now);
+        currentState = State.BeforeInitTwo;
+    }
+
+    function initTwo(
+        uint256 _totalSupply,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
-        bytes32 _descriptionHash
-    ) {
+        uint256 _minEthAmount,
+        uint256 _minBidPercentage,
+        uint256 _tokensPercentageForKeyHolder,
+        uint256 _cleanupDelay,
+        uint256 _freePeriodDuration
+    )
+    onlyInState(State.BeforeInitTwo) {
         require(
-            TOTAL_SUPPLY == SafeMath.add(
+            _totalSupply == SafeMath.add(
                 _tokensForArtist,
                 SafeMath.add(_tokensForTrivial, _tokensForIco)
             )
         );
-        require(MIN_BID_PERCENTAGE < 100);
-        require(TOKENS_PERCENTAGE_FOR_KEY_HOLDER < 100);
+        require(_minBidPercentage < 100);
+        require(_tokensPercentageForKeyHolder < 100);
 
-        name = _name;
-        symbol = _symbol;
-        decimals = DECIMALS;
-
-        icoDuration = _icoDuration;
-        auctionDuration = _auctionDuration;
-        artist = _artist;
-        trivial = _trivial;
+        totalSupply = _totalSupply;
+        minEthAmount = _minEthAmount;
+        minBidPercentage = _minBidPercentage;
+        tokensPercentageForKeyHolder = _tokensPercentageForKeyHolder;
+        cleanupDelay = _cleanupDelay;
+        freePeriodDuration = _freePeriodDuration;
 
         tokensForArtist = _tokensForArtist;
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
-        descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
     }
 
@@ -128,8 +159,8 @@ contract TrivialToken is StandardToken, PullPayment {
     function startIco()
     onlyInState(State.Created)
     onlyTrivial() {
-        icoEndTime = now + icoDuration;
-        freePeriodEndTime = icoEndTime + FREE_PERIOD_DURATION;
+        icoEndTime = SafeMath.add(now, icoDuration);
+        freePeriodEndTime = SafeMath.add(icoEndTime, freePeriodDuration);
         currentState = State.IcoStarted;
         IcoStarted(icoEndTime);
     }
@@ -137,7 +168,7 @@ contract TrivialToken is StandardToken, PullPayment {
     function contributeInIco() payable
     onlyInState(State.IcoStarted)
     onlyBefore(icoEndTime) {
-        require(msg.value > MIN_ETH_AMOUNT);
+        require(msg.value > minEthAmount);
 
         if (contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
@@ -195,7 +226,7 @@ contract TrivialToken is StandardToken, PullPayment {
     function canStartAuction() returns (bool) {
         bool isArtist = msg.sender == artist;
         bool isKeyHolder = balances[msg.sender] >= SafeMath.div(
-        SafeMath.mul(TOTAL_SUPPLY, TOKENS_PERCENTAGE_FOR_KEY_HOLDER), 100);
+        SafeMath.mul(totalSupply, tokensPercentageForKeyHolder), 100);
         return isArtist || isKeyHolder;
     }
 
@@ -205,7 +236,7 @@ contract TrivialToken is StandardToken, PullPayment {
         require(canStartAuction());
 
         // 100% tokens owner is the only key holder
-        if (balances[msg.sender] == TOTAL_SUPPLY) {
+        if (balances[msg.sender] == totalSupply) {
             // no auction takes place,
             highestBidder = msg.sender;
             currentState = State.AuctionFinished;
@@ -222,14 +253,14 @@ contract TrivialToken is StandardToken, PullPayment {
     onlyInState(State.AuctionStarted)
     onlyBefore(auctionEndTime) {
         //Must be greater or equal to minimal amount
-        require(msg.value >= MIN_ETH_AMOUNT);
+        require(msg.value >= minEthAmount);
         uint256 bid = calculateUserBid();
 
         //If there was a bid already
-        if (highestBid >= MIN_ETH_AMOUNT) {
+        if (highestBid >= minEthAmount) {
             //Must be greater or equal to 105% of previous bid
             uint256 minimalOverBid = SafeMath.add(highestBid, SafeMath.div(
-                SafeMath.mul(highestBid, MIN_BID_PERCENTAGE), 100
+                SafeMath.mul(highestBid, minBidPercentage), 100
             ));
             require(bid >= minimalOverBid);
             //Return to previous bidder his balance
@@ -255,8 +286,8 @@ contract TrivialToken is StandardToken, PullPayment {
             //User sends 16ETH, has 40 of 200 tokens
             //(16 * 200) / (200 - 40) => 3200 / 160 => 20
             bid = SafeMath.div(
-                SafeMath.mul(msg.value, TOTAL_SUPPLY),
-                SafeMath.sub(TOTAL_SUPPLY, contribution)
+                SafeMath.mul(msg.value, totalSupply),
+                SafeMath.sub(totalSupply, contribution)
             );
         }
         return bid;
@@ -278,13 +309,13 @@ contract TrivialToken is StandardToken, PullPayment {
 
         if (holder != highestBidder) {
             holder.transfer(
-                SafeMath.div(SafeMath.mul(highestBid, availableTokens), TOTAL_SUPPLY)
+                SafeMath.div(SafeMath.mul(highestBid, availableTokens), totalSupply)
             );
         }
     }
 
     function isKeyHolder(address person) constant returns (bool) {
-        return balances[person] >= SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        return balances[person] >= SafeMath.div(tokensForIco, tokensPercentageForKeyHolder); }
 
     /*
         General methods
@@ -326,7 +357,7 @@ contract TrivialToken is StandardToken, PullPayment {
         require(
             (
                 currentState == State.AuctionFinished &&
-                now > SafeMath.add(auctionEndTime, CLEANUP_DELAY) // Delay in correct state
+                now > SafeMath.add(auctionEndTime, cleanupDelay) // Delay in correct state
             ) ||
             currentState == State.IcoCancelled // No delay in cancelled state
         );
@@ -343,7 +374,7 @@ contract TrivialToken is StandardToken, PullPayment {
             icoEndTime, auctionDuration, auctionEndTime,
             tokensForArtist, tokensForTrivial, tokensForIco,
             amountRaised, highestBidder, highestBid, currentState,
-            TOKENS_PERCENTAGE_FOR_KEY_HOLDER, MIN_BID_PERCENTAGE,
+            tokensPercentageForKeyHolder, minBidPercentage,
             freePeriodEndTime
         );
     }
