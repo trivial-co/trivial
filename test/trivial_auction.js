@@ -94,6 +94,6 @@ contract('TrivialToken - Auction tests', (accounts) => {
     it('Current bidder cannot transfer tokens', async () => {
         trivialContract = (await trivialContractBuilder.auctionStarted(otherUserAddress)).get();
         await trivialContract.bidInAuction({from: otherUserAddress, value: web3.toWei(0.05, 'ether')});
-        trivialContract.transfer(otherUserAddress2, 10, {from: otherUserAddress});
+        await trivialContract.transfer(otherUserAddress2, 10, {from: otherUserAddress});
     })
 });
