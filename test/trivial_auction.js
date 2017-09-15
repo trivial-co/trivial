@@ -96,7 +96,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
         })).icoFinished()).get();
         assert.isOk(await throws(trivialContract.startAuction, {from: otherUserAddress}));
         common.goForwardInTime(60 * 24 * 3600 + 1);
-        await trivialContract.startAuction();
+        await trivialContract.startAuction({from: otherUserAddress});
         assert.equal(await trivialContract.currentState(), 3, 'Should be AuctionStarted');
 
     })
