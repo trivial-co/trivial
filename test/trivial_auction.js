@@ -28,8 +28,8 @@ contract('TrivialToken - Auction tests', (accounts) => {
             web3.toWei(0.01, 'ether'),
             10,
             25,
-            6000,
-            6000
+            180 * 24 * 3600,
+            60 * 24 * 3600
         );
         await token.startIco();
         assert.equal(await token.currentState.call(), 1, 'Should be one');
@@ -52,7 +52,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
 
     async function startAuction() {
         common.goForwardInTime(60 * 24 * 3600 + 1);
-        await token.startAuction();
+        await token.startAuction({from: accounts[1]});
         assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
         assert.isAbove(await token.auctionEndTime(),
             common.now(), 'Should be in future');
@@ -101,7 +101,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
     it('Auction can only be started after free period end', async () => {
         assert.isOk(await throws(token.startAuction, {from: otherUserAddress}));
         common.goForwardInTime(60 * 24 * 3600 + 1);
-        await token.startAuction();
+        await token.startAuction({from: accounts[1]});
         assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
     })
 
