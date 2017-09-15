@@ -24,7 +24,7 @@ contract DevelopmentTrivialToken is TrivialToken {
     function getArtist() constant returns (address) { return artist; }
     function getSelf() constant returns (address) { return msg.sender; }
     function becomeKeyHolder() {
-        balances[msg.sender] = SafeMath.div(tokensForIco, TOKENS_PERCENTAGE_FOR_KEY_HOLDER); }
+        balances[msg.sender] = SafeMath.div(tokensForIco, tokensPercentageForKeyHolder); }
 
     function setIcoEndTime(uint256 time) { icoEndTime = time; }
     function setIcoEndTimeOneMinute() { icoEndTime = now + 1 minutes; }
