@@ -54,7 +54,8 @@ contract TrivialToken is StandardToken, PullPayment {
 
     //State
     enum State {
-        Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled, BeforeInit
+        Created, IcoStarted, IcoFinished, AuctionStarted, AuctionFinished, IcoCancelled,
+        BeforeInitOne, BeforeInitTwo
     }
     State public currentState;
 
@@ -83,27 +84,47 @@ contract TrivialToken is StandardToken, PullPayment {
     }
 
     function TrivialToken() {
-        currentState = State.BeforeInit;
+        currentState = State.BeforeInitOne;
     }
 
-    function initToken(
-        string _name, string _symbol,
-        uint256 _icoDuration, uint256 _auctionDuration,
-        address _artist, address _trivial,
+    function initOne(
+        string _name,
+        string _symbol,
+        uint8 _decimals,
+        uint256 _icoDuration,
+        uint256 _auctionDuration,
+        address _artist,
+        address _trivial,
+        bytes32 _descriptionHash
+    )
+    onlyInState(State.BeforeInitOne)
+    {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+
+        icoDuration = _icoDuration;
+        auctionDuration = _auctionDuration;
+
+        artist = _artist;
+        trivial = _trivial;
+
+        descriptionHash = DescriptionHash(_descriptionHash, now);
+        currentState = State.BeforeInitTwo;
+    }
+
+    function initTwo(
+        uint256 _totalSupply,
         uint256 _tokensForArtist,
         uint256 _tokensForTrivial,
         uint256 _tokensForIco,
-        bytes32 _descriptionHash,
-        uint8 _decimals,
-        uint256 _totalSupply,
         uint256 _minEthAmount,
         uint256 _minBidPercentage,
         uint256 _tokensPercentageForKeyHolder,
         uint256 _cleanupDelay,
         uint256 _freePeriodDuration
     )
-    onlyInState(State.BeforeInit)
-    {
+    onlyInState(State.BeforeInitTwo) {
         require(
             _totalSupply == SafeMath.add(
                 _tokensForArtist,
@@ -113,10 +134,6 @@ contract TrivialToken is StandardToken, PullPayment {
         require(_minBidPercentage < 100);
         require(_tokensPercentageForKeyHolder < 100);
 
-        name = _name;
-        symbol = _symbol;
-        decimals = _decimals;
-
         totalSupply = _totalSupply;
         minEthAmount = _minEthAmount;
         minBidPercentage = _minBidPercentage;
@@ -124,16 +141,10 @@ contract TrivialToken is StandardToken, PullPayment {
         cleanupDelay = _cleanupDelay;
         freePeriodDuration = _freePeriodDuration;
 
-        icoDuration = _icoDuration;
-        auctionDuration = _auctionDuration;
-        artist = _artist;
-        trivial = _trivial;
-
         tokensForArtist = _tokensForArtist;
         tokensForTrivial = _tokensForTrivial;
         tokensForIco = _tokensForIco;
 
-        descriptionHash = DescriptionHash(_descriptionHash, now);
         currentState = State.Created;
     }
 
