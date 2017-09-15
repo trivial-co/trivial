@@ -37,7 +37,6 @@ contract('TrivialToken - Auction tests', (accounts) => {
         await token.contributeInIco({from: accounts[1], value: 100000000000000000});
         await token.contributeInIco({from: accounts[2], value: 200000000000000000});
         await token.contributeInIco({from: accounts[3], value: 200000000000000000});
-        await token.contributeInIco({from: me, value: 300000000000000000});
         common.goForwardInTime(6001);
         await token.distributeTokens(5);
         await token.finishIco();

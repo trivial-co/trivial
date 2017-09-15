@@ -27,7 +27,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
             200000,
             100000,
             700000,
-            web3.toWei(0.01, 'ether'),
+            web3.toWei(0.005, 'ether'),
             10,
             25,
             6000,
