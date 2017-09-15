@@ -28,17 +28,26 @@ contract('TrivialToken - Exchange tests', (accounts) => {
 
     beforeEach(async () => {
         token = await TrivialToken.new();
-        await token.initToken(
+        await token.initOne(
             'TrivialTest',
             'TRVLTEST',
-            common.now() + 6000,
-            600,
+            0,
+            6000,
+            6000,
             artistAddress,
             trivialAddress,
+            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+        );
+        await token.initTwo(
+            1000000,
             200000,
             100000,
             700000,
-            '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
+            web3.toWei(0.01, 'ether'),
+            10,
+            25,
+            6000,
+            6000
         );
         await token.startIco({from: trivialAddress});
         assert.equal(await token.currentState.call(), 1, 'Should be one');
