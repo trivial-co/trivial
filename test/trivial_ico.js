@@ -68,6 +68,12 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await trivialContract.contributeInIco({value: minProperAmount});
     })
 
+    it('Sending ether to contract during ICO makes a contribution', async () => {
+        trivialContract = (await trivialContractBuilder.icoStarted()).get();
+        trivialContract.sendTransaction({value: web3.toWei(1, 'ether'), from: otherUserAddress});
+        assert.equal(await trivialContract.contributions(otherUserAddress), web3.toWei(1, 'ether'))
+    })
+
     it('amountRaised is equal to sum of all contributions', async () => {
         trivialContract = (await trivialContractBuilder.contributions({
             [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5

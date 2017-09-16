@@ -74,8 +74,7 @@ contract TrivialToken is StandardToken, PullPayment {
     //Modififers
     modifier onlyInState(State expectedState) { require(expectedState == currentState); _; }
     modifier onlyInTokensTrasferingPeriod() {
-        require(currentState == State.IcoFinished || currentState == State.AuctionStarted);
-        require(now < auctionEndTime);
+        require(currentState == State.IcoFinished || (currentState == State.AuctionStarted && now < auctionEndTime));
         _;
     }
     modifier onlyBefore(uint256 _time) { require(now < _time); _; }
@@ -314,9 +313,6 @@ contract TrivialToken is StandardToken, PullPayment {
         }
     }
 
-    function isKeyHolder(address person) constant returns (bool) {
-        return balances[person] >= SafeMath.div(tokensForIco, tokensPercentageForKeyHolder); }
-
     /*
         General methods
     */
@@ -392,7 +388,7 @@ contract TrivialToken is StandardToken, PullPayment {
     onlyInTokensTrasferingPeriod() returns (bool) {
         if (currentState == State.AuctionStarted) {
             require(_to != highestBidder);
-            require(msg.sender != highestBidder);
+            require(_from != highestBidder);
         }
         return StandardToken.transferFrom(_from, _to, _value);
     }
