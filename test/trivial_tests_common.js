@@ -50,6 +50,14 @@ class TrivialContractBuilder {
         return this;
     }
 
+    async auctionFinished(auctionWinner) {
+        await this.auctionStarted(auctionWinner);
+        await this.trivialContract.bidInAuction({from: auctionWinner, value: web3.toWei(0.05, 'ether')});
+        goForwardInTime(6000 + 1);
+        await this.trivialContract.finishAuction();
+        return this;
+    }
+
     get() {
         return this.trivialContract;
     }
