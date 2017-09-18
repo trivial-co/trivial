@@ -4,7 +4,6 @@ var BigNumber = require('bignumber.js')
 
 contract('TrivialToken - ICO tests', (accounts) => {
 
-    var token;
     var trivialContractBuilder;
     var trivialAddress = accounts[0];
     var artistAddress = accounts[1];
@@ -69,6 +68,12 @@ contract('TrivialToken - ICO tests', (accounts) => {
         await trivialContract.contributeInIco({value: minProperAmount});
     })
 
+    it('Sending ether to contract during ICO makes a contribution', async () => {
+        trivialContract = (await trivialContractBuilder.icoStarted()).get();
+        trivialContract.sendTransaction({value: web3.toWei(1, 'ether'), from: otherUserAddress});
+        assert.equal(await trivialContract.contributions(otherUserAddress), web3.toWei(1, 'ether'))
+    })
+
     it('amountRaised is equal to sum of all contributions', async () => {
         trivialContract = (await trivialContractBuilder.contributions({
             [accounts[0]]: 4, [accounts[1]]: 3, [accounts[2]]: 3, [accounts[3]]: 5
@@ -80,7 +85,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Artist gets tokensForArtist tokens if he contributed nothing', async () => {
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 1
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var tokensForArtist = parseInt(await trivialContract.tokensForArtist());
 
         assert.equal(parseInt(await trivialContract.balanceOf(artistAddress)), tokensForArtist);
@@ -90,7 +95,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         var artistShare = 0.1
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 9, [artistAddress]: 1
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var tokensForArtist = parseInt(await trivialContract.tokensForArtist());
         var tokensForIco = parseInt(await trivialContract.tokensForIco());
         var artistExpectedBalance = tokensForArtist + artistShare * tokensForIco
@@ -101,7 +106,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
     it('Trivial gets tokensForTrivial tokens if he contributed nothing', async () => {
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 1
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var tokensForTrivial = parseInt(await trivialContract.tokensForTrivial());
 
         assert.equal(await trivialContract.balanceOf(trivialAddress), tokensForTrivial);
@@ -111,7 +116,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         var trivialShare = 0.1
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 9, [trivialAddress]: 1
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var tokensForTrivial = parseInt(await trivialContract.tokensForTrivial());
         var tokensForIco = parseInt(await trivialContract.tokensForIco());
         var trivialExpectedBalance = tokensForTrivial + trivialShare * tokensForIco
@@ -123,7 +128,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         var userShare = 0.1
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 1, [accounts[5]]: 5, [accounts[6]]: 4
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var tokensForIco = parseInt(await trivialContract.tokensForIco());
         var expectedUserBalance = userShare * tokensForIco
         var userBalance = parseInt(await trivialContract.balanceOf(otherUserAddress))
@@ -134,7 +139,7 @@ contract('TrivialToken - ICO tests', (accounts) => {
         var artistEtherBalanceBefore = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         trivialContract = (await (await trivialContractBuilder.contributions({
             [otherUserAddress]: 5, [trivialAddress]: 10
-        })).IcoFinished()).get();
+        })).icoFinished()).get();
         var artistEtherBalanceAfter = parseInt(web3.fromWei(web3.eth.getBalance(artistAddress).toNumber(), 'ether'));
         var artistEtherBalanceChange = artistEtherBalanceAfter - artistEtherBalanceBefore
         assert.equal(artistEtherBalanceChange, 15)

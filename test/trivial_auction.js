@@ -1,26 +1,30 @@
 var common = require('./trivial_tests_common.js');
-var DevelopmentToken = artifacts.require("DevelopmentTrivialToken.sol");
+var TrivialToken = artifacts.require("TrivialToken.sol");
 
 contract('TrivialToken - Auction tests', (accounts) => {
 
-    var token, me;
-    var trivialAddress = accounts[0];
-    var artistAddress = accounts[1];
+    var trivialContract;
+    var trivial = accounts[0];
+    var artist = accounts[1];
     var otherUserAddress = accounts[2];
+    var bidder = accounts[3];
+    var sender = accounts[4];
+    var receiver = accounts[5];
+    var keyHolder = accounts[6];
 
     beforeEach(async () => {
-        token = await DevelopmentToken.new();
-        await token.initOne(
+        trivialContract = await TrivialToken.new()
+        await trivialContract.initOne(
             'TrivialTest',
             'TRVLTEST',
             0,
             6000,
             6000,
-            artistAddress,
-            trivialAddress,
+            artist,
+            trivial,
             '0x71544d4D42dAAb49D9F634940d3164be25ba03Cc'
         );
-        await token.initTwo(
+        await trivialContract.initTwo(
             1000000,
             200000,
             100000,
@@ -31,16 +35,7 @@ contract('TrivialToken - Auction tests', (accounts) => {
             180 * 24 * 3600,
             60 * 24 * 3600
         );
-        await token.startIco();
-        assert.equal(await token.currentState.call(), 1, 'Should be one');
-        await token.contributeInIco({from: accounts[0], value: 100000000000000000});
-        await token.contributeInIco({from: accounts[1], value: 100000000000000000});
-        await token.contributeInIco({from: accounts[2], value: 200000000000000000});
-        await token.contributeInIco({from: accounts[3], value: 200000000000000000});
-        common.goForwardInTime(6001);
-        await token.distributeTokens(5);
-        await token.finishIco();
-        assert.equal(await token.currentState.call(), 2, 'Should be two');
+        trivialContractBuilder = new common.TrivialContractBuilder(trivialContract, trivial);
     })
 
     async function throws(fn, ...args) {
@@ -50,73 +45,140 @@ contract('TrivialToken - Auction tests', (accounts) => {
         return thrown;
     }
 
-    async function startAuction() {
-        common.goForwardInTime(60 * 24 * 3600 + 1);
-        await token.startAuction({from: accounts[1]});
-        assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
-        assert.isAbove(await token.auctionEndTime(),
-            common.now(), 'Should be in future');
-    }
-
-    async function bidAuction() {
-        var balance = parseInt(await token.getBalance(accounts[4]));
-        var bid = 300000000000000000;
-
-        assert.equal(await token.highestBid.call(), 0, 'Should be zero');
-        await token.bidInAuction({from: accounts[4], value: bid});
-
-        var balanceAfterBidAndTax = parseInt(await token.getBalance(accounts[4]));
-        assert.isBelow(balanceAfterBidAndTax, balance - bid, 'After balance');
-
-        assert.equal(await token.highestBid.call(), bid, 'Should be equal to bid: ' + bid);
-        assert.isOk(await throws(
-            token.bidInAuction, {from: accounts[5], value: bid}
-        ), 'bidInAuction - Should be thrown - equal');
-        assert.isOk(await throws(
-            token.bidInAuction, {from: accounts[5], value: bid + 100}
-        ), 'bidInAuction - Should be thrown - small');
-
-        await token.bidInAuction({from: accounts[5], value: 350000000000000000});
-        assert.equal(
-            await token.highestBid.call(), 350000000000000000, 'Should be 350000000000000000');
-
-        assert.equal(parseInt(
-            await token.getBalance(accounts[4])), balanceAfterBidAndTax + bid, 'Refund balance');
-    }
-
-    async function finishAuction() {
-        assert.isAbove(await token.auctionEndTime.call(),
-            common.now(), 'Should be in future');
-        assert.isOk(await throws(token.finishAuction), 'finishAuction - Should be thrown');
-        await token.setAuctionEndTimePast();
-        assert.isBelow(await token.auctionEndTime.call(),
-            common.now(), 'Should be in past');
-        await token.finishAuction();
-        assert.equal(await token.currentState.call(), 4, 'Should be AuctionFinished');
-        assert.isOk(await throws(
-            token.bidInAuction, {from: accounts[6], value: 900000000000000000}
-        ), 'bidInAuction - Should be thrown');
-    }
-
     it('Auction can only be started after free period end', async () => {
-        assert.isOk(await throws(token.startAuction, {from: otherUserAddress}));
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [keyHolder]: 1,
+        })).icoFinished()).get();
+        assert.isOk(await throws(trivialContract.startAuction, {from: keyHolder}));
         common.goForwardInTime(60 * 24 * 3600 + 1);
-        await token.startAuction({from: accounts[1]});
-        assert.equal(await token.currentState(), 3, 'Should be AuctionStarted');
+        await trivialContract.startAuction({from: keyHolder});
+        assert.equal(await trivialContract.currentState(), 3, 'Should be AuctionStarted');
     })
 
-    it('check Auction start', async () => {
-        await startAuction();
+    it('Auction can be started by key holders', async () => {
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [keyHolder]: 1,
+        })).icoFinished()).get();
+        common.goForwardInTime(60 * 24 * 3600 + 1);
+        assert.isOk(await throws(trivialContract.startAuction, {from: otherUserAddress}));
+        await trivialContract.startAuction({from: keyHolder});
+        assert.equal(await trivialContract.currentState(), 3, 'Should be AuctionStarted');
     })
 
-    it('check Bid auction', async () => {
-        await startAuction();
-        await bidAuction();
+    it('Auction can be started by artist, even when they are not key holders', async () => {
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [keyHolder]: 1,
+        })).icoFinished()).get();
+        await trivialContract.transfer(receiver, 200000, {from: artist}) // artist now has no tokens
+        common.goForwardInTime(60 * 24 * 3600 + 1);
+        await trivialContract.startAuction({from: artist});
+        assert.equal(await trivialContract.currentState(), 3, 'Should be AuctionStarted');
     })
 
-    it('check Finish auction', async () => {
-        await startAuction();
-        await bidAuction();
-        await finishAuction();
+    it('Sending funds to contract during auction will bid', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(bidder)).get();
+        trivialContract.sendTransaction({value: web3.toWei(1, 'ether'), from: otherUserAddress});
+        assert.equal(await trivialContract.highestBidder(), otherUserAddress);
+        assert.equal(await trivialContract.highestBid(), web3.toWei(1, 'ether'));
+    })
+
+    it('Auction is immediately finished if it is started by all tokens holder', async () => {
+        trivialContract = (await (await trivialContractBuilder.contributions({
+            [keyHolder]: 1,
+        })).icoFinished()).get();
+        await trivialContract.transfer(keyHolder, 200000, {from: artist});
+        await trivialContract.transfer(keyHolder, 100000, {from: trivial});
+        common.goForwardInTime(60 * 24 * 3600 + 1);
+        await trivialContract.startAuction({from: keyHolder});
+        assert.equal(await trivialContract.currentState(), 4);
+        assert.equal(await trivialContract.highestBidder(), keyHolder);
+    })
+
+    it('First bidder cannot bid less than minEthAmount', async () => {
+        var minEthAmount = web3.toWei(0.01, 'ether')
+        trivialContract = (await trivialContractBuilder.auctionStarted(keyHolder)).get();
+        assert.isOk(await throws(trivialContract.bidInAuction, {from: otherUserAddress, value: minEthAmount - 2}));
+        await trivialContract.bidInAuction({from: otherUserAddress, value: minEthAmount});
+        assert.equal(await trivialContract.highestBidder(), otherUserAddress);
+        assert.equal(await trivialContract.highestBid(), minEthAmount);
+    })
+
+    it('Next bid must be at least 110% of the previous bid', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(keyHolder)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(1, 'ether')});
+        assert.isOk(await throws(trivialContract.bidInAuction, {from: otherUserAddress, value: web3.toWei(1.0999, 'ether')}));
+        await trivialContract.bidInAuction({from: otherUserAddress, value: web3.toWei(1.1, 'ether')});
+        assert.equal(await trivialContract.highestBidder(), otherUserAddress);
+        assert.equal(await trivialContract.highestBid(), web3.toWei(1.1, 'ether'));
+    })
+
+    it('Overbidden gets back his bid amount', async () => {
+        var bidAmount = web3.toWei(1, 'ether');
+        trivialContract = (await trivialContractBuilder.auctionStarted(keyHolder)).get();
+        await trivialContract.bidInAuction({from: bidder, value: bidAmount});
+        var bidderBalanceBeforeOverbid = web3.eth.getBalance(bidder).toNumber();
+        await trivialContract.bidInAuction({from: otherUserAddress, value: 1.1 * bidAmount});
+        var bidderBalanceAfterOverbid = web3.eth.getBalance(bidder).toNumber();
+        assert.equal(bidderBalanceAfterOverbid - bidderBalanceBeforeOverbid, bidAmount);
+    })
+
+    it('Current bidder cannot transfer tokens', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(bidder)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        assert.isOk(await throws(trivialContract.transfer, receiver, 10, {from: bidder}));
+    })
+
+    it('Current bidder cannot receive tokens', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        assert.isOk(await throws(trivialContract.transfer, bidder, 10, {from: sender}));
+    })
+
+    it('Tokens may be transferred between non-biddeers during auction', async () => {
+        // otherUserAddress2 has 700000 tokens
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        await trivialContract.transfer(receiver, 100000, {from: sender});
+        assert.equal(parseInt(await trivialContract.balanceOf.call(receiver)), 100000);
+        assert.equal(parseInt(await trivialContract.balanceOf.call(sender)), 600000);
+    })
+
+    it('Current bidder cannot be a sender in transferFrom call', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(bidder)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        trivialContract.approve(otherUserAddress, 1000, {from: bidder});
+        assert.isOk(await throws(trivialContract.transferFrom, bidder, receiver, 100, {from: otherUserAddress}));
+    })
+
+    it('Current bidder cannot be a receiver in transferFrom call', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        trivialContract.approve(otherUserAddress, 1000, {from: sender});
+        assert.isOk(await throws(trivialContract.transferFrom, sender, bidder, 100, {from: otherUserAddress}));
+    })
+
+    it('Current bidder may transfer tokens using transferFrom between non-biddeers during auction', async () => {
+        // otherUserAddress2 has 700000 tokens
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        trivialContract.approve(bidder, 100000, {from: sender});
+        await trivialContract.transferFrom(sender, receiver, 100000, {from: bidder});
+        assert.equal(parseInt(await trivialContract.balanceOf.call(receiver)), 100000);
+        assert.equal(parseInt(await trivialContract.balanceOf.call(sender)), 600000);
+    })
+
+    it('Tokens cannot be transferred after auction end time', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        common.goForwardInTime(6000 + 1);
+        assert.isOk(await throws(trivialContract.transfer, receiver, 10, {from: sender}));
+    })
+
+    it('transferFrom cannot be called after auction end time', async () => {
+        trivialContract = (await trivialContractBuilder.auctionStarted(sender)).get();
+        await trivialContract.bidInAuction({from: bidder, value: web3.toWei(0.05, 'ether')});
+        trivialContract.approve(bidder, 1000, {from: sender});
+        common.goForwardInTime(6000 + 1);
+        assert.isOk(await throws(trivialContract.transferFrom, sender, receiver, 100, {from: bidder}));
     })
 });
