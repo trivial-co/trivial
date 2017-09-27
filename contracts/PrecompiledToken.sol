@@ -1,6 +1,13 @@
 pragma solidity ^0.4.11;
 
 
+/*
+ * Paste Trivial Token code at the bottom.
+ * Go to https://remix.ethereum.org
+ * Compile code and retrive bytecode of Trivial Token
+ */
+
+
 /**
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
