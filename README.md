@@ -30,20 +30,20 @@ For local testing:
 
 - Go to https://remix.ethereum.org and paste concatenated source of `PrecompiledToken.sol` and `TrivialToken.sol`:
 
-![alt text](https://raw.githubusercontent.com/trivial-co/trivial/feature/precompiled-token/imgs/paste.png "Paste screenshot")
+![alt text](https://raw.githubusercontent.com/trivial-co/trivial/master/imgs/paste.png "Paste screenshot")
 
 - Hit compile contract button:
 
-![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/feature/precompiled-token/imgs/compile.png "Compile screenshot")
+![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/master/imgs/compile.png "Compile screenshot")
 
 - Go to contract details:
 
-![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/feature/precompiled-token/imgs/details.png "Details screenshot")
+![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/master/imgs/details.png "Details screenshot")
 
 - Copy bytecode:
 
-![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/feature/precompiled-token/imgs/bytecode.png "Bytecode screenshot")
+![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/master/imgs/bytecode.png "Bytecode screenshot")
 
 - And ABI:
 
-![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/feature/precompiled-token/imgs/interface.png "ABI screenshot")
+![alt_text](https://raw.githubusercontent.com/trivial-co/trivial/master/imgs/interface.png "ABI screenshot")
